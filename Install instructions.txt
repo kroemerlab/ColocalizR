@@ -1,0 +1,26 @@
+-------------------------------
+INSTALLATION INSTRUCTIONS
+-------------------------------
+
+I. REQUIREMENTS
+- Installation files were designed to be installed on a sytem running Windows 64bits
+- Internet connection is required to install R packages mandatory for running the program
+- We strongly recommend to use a PC equipped with at least 8GB of RAM and a 4-cores last-generation CPU.
+
+
+II. INSTALLATION
+- Download the installation files https://drive.google.com/file/d/0B-2zKbaELKYrdlNreU1xaWh2Zms/view?usp=sharing
+- Uninstall any version of Java and R installed on your system
+- Unzip the archive anywhere on your PC
+- Launch "Setup.bat" and wait for the installation to complete
+
+III. EXECUTION
+- Launch "Launcher.bat",a window appears.
+- For precise instructions about software usage, please refer to the upcoming documentation
+
+-------------------------------
+NOTES
+-------------------------------
+
+- The application is distributed as is. Most of errors will be unhandled, crashing the application if wrongly used.
+- The application will be constantly updated. Please check for any update on https://github.com/kroemerlab/ColocalizR
