@@ -1,2 +1,2 @@
 # ColocalizR
-Shiny app that allows studying colocalization of fluorescent signals in different cellular compartments on a cell by cell basis 
+Shiny app for quantifying colocalization of fluorescent signals in cellular compartments on a cell by cell basis 
