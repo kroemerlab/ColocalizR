@@ -1,2 +1,2 @@
 # ColocalizR
-Shiny app for quantifying colocalization of fluorescent signals in cellular compartments on a cell by cell basis 
+ColocalizR is an R-based image-analysis application developed for the quantification of co-localization in high-throughput, on a cell-by-cell basis. 
