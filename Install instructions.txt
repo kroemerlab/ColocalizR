@@ -16,7 +16,7 @@ II. INSTALLATION
 
 III. EXECUTION
 - Launch "Launcher.bat",a window appears.
-- For precise instructions about software usage, please refer to "Colocalizer - User Manual.pdf"
+- For precise instructions about software usage, please refer to "ColocalizR - User Manual.pdf"
 
 -------------------------------
 NOTES
