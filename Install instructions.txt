@@ -5,11 +5,11 @@ INSTALLATION INSTRUCTIONS
 I. REQUIREMENTS
 - Installation files were designed to be installed on a sytem running Windows 64bits
 - Internet connection is required for installing R packages (mandatory to run the program)
-- We strongly recommend to use a PC equipped with at least 8GB of RAM and a 4-cores last-generation CPU.
+- We strongly recommend to use a PC equipped with at least 8GB of RAM and a quad-core (or higher) last-generation CPU.
 
 
 II. INSTALLATION
-- Download the installation files at https://drive.google.com/file/d/0B-2zKbaELKYrdlNreU1xaWh2Zms/view?usp=sharing
+- Download the installation files at https://drive.google.com/file/d/0B-2zKbaELKYrdlNreU1xaWh2Zms/view?usp=sharing, or download the file arborescence from the github "ColocalizR" folder. In the last case, java and R installation will have to be downloaded manually and placed in "3rd part" folder.
 - Uninstall any version of Java and R installed on your system
 - Unzip the archive anywhere on your PC
 - Launch "Setup.bat" and wait for the installation to complete
