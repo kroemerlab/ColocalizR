@@ -9,7 +9,7 @@ I. REQUIREMENTS
 
 
 II. INSTALLATION
-- Download the installation files at https://drive.google.com/file/d/0B-2zKbaELKYraGhsX1ZndGV1dHc/view?usp=sharing, or download the file arborescence from the github "ColocalizR" folder. In the last case, java and R installation files will have to be downloaded manually and placed in "3rd part" folder.
+- Download the installation files at https://drive.google.com/file/d/0B-2zKbaELKYrLW9Jb29RRFRkeFk/view?usp=sharing, or download the file arborescence from the github "ColocalizR" folder. In the last case, java and R installation files will have to be downloaded manually and placed in "3rd part" folder.
 - Uninstall any version of Java and R installed on your system
 - Unzip the archive anywhere on your PC
 - Launch "Setup.bat" and wait for the installation to complete
