@@ -110,7 +110,7 @@ coloc.Sgl = function(MyImCl,W_Name, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3,
         if(i == Red){
           LOGR = LOG
         }
-        if(i == 3){
+        if(i == max(nch)){
           CytoIm = (medianFilter(EBImage::normalize((LOGG+LOGR)/2),10))
           rm(list = c('LOGR','LOGG'))
         }
