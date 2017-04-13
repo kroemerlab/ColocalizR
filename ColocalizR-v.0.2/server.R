@@ -311,7 +311,7 @@ server = function(input, output, session) {
       }else if(OS == 'Linux'){
         RAM = as.numeric(system(" awk '/MemFree/ {print $2}' /proc/meminfo", intern=T))
       }else if(OS == 'Darwin'){
-        RAM = as.numeric(unlist(strsplit(system("sysctl hw.memsize", intern = T))))/3
+        RAM = as.numeric(unlist(strsplit(system("sysctl hw.memsize", intern = T), split = ' '))[2])/1e3
       }
       Cores = detectCores()
       if(getCell.FOR==T){
