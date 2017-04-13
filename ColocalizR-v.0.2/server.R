@@ -47,7 +47,7 @@ server = function(input, output, session) {
     }else{
       observeEvent(input$folder,{
         if(OS == 'Darwin'){
-          Plates$location = normalizePath(path.expand(as.character(system("osascript -e 'set thisPOSIXPath to (the POSIX path of (choose folder with prompt \"Select image location\"))'"))))
+          Plates$location = normalizePath(path.expand(as.character(system("osascript -e 'set thisPOSIXPath to (the POSIX path of (choose folder with prompt \"Select image location\"))'", intern = T))))
         }else{
           Plates$location = normalizePath(path.expand(rchoose.dir(caption = "Select image location")), winslash = '/')
         }
