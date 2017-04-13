@@ -53,11 +53,18 @@ sudo -s source ~/.profile
 sudo R CMD javareconf
 sudo apt-get install r-cran-rjava 
 ```
+If OpenSSL and libcurl libraries are not already installed, run these lines to do it.
+```sh
+sudo apt-get install libcurl4-openssl-dev
+sudo apt-get install libssl-dev
+```
+
 ## R Packages
 You have then to install some packages before running the application. To do so, open RStudio and copy/paste the lines below in the console :
 ```R
-install.packages(pkgs = c('devtools', 'R6','shiny','tiff','reshape','reshape2','RODBC','foreach','doParallel','stringi',
-                          'naturalsort','rChoiceDialogs','gtools','pbapply'), repos = "http://cloud.r-project.org")
+install.packages(pkgs = c('devtools', 'PerformanceAnalytics', 'R6','shiny','tiff','reshape','reshape2',
+                          'RODBC','foreach','doParallel','stringi','naturalsort','rChoiceDialogs','gtools',
+                          'pbapply'), repos = "http://cloud.r-project.org")
 
 source("http://bioconductor.org/biocLite.R")
 biocLite(pkgs=c('EBImage','flowCore'), ask=F)
