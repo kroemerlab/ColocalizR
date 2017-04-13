@@ -347,7 +347,7 @@ server = function(input, output, session) {
 
       Summary <- foreach(ID = UniID,j=icount(), .packages = c("EBImage","tiff","reshape2","gtools"),.inorder=FALSE,
                            .combine = 'smartbind',.export=c('coloc.Sgl', 'ReconsOpening', 'geodilate', 'AutoAdjust')) %dopar% {
-      IDs = reshape2::colsplit(ID, pattern = '_', names = c('P', 'TI', 'W', 'S'))
+                             IDs = reshape2::colsplit(ID, pattern = '_', names = c('P', 'TI', 'W', 'S'))
                              try({
                                coloc.Sgl(MyImCl = MyImCl.FOR, Plate = IDs$P, Time = IDs$TI, Well = IDs$W, Site = IDs$S, Blue = Blue.FOR, Green = Green.FOR,Red = Red.FOR, auto2 = auto2.FOR, auto3 = auto3.FOR,
                                          Cyto = Cyto.FOR,Nuc.rm = Nuc.rm.FOR, TopSize2 = TopSize2.FOR, TopSize3 = TopSize3.FOR, Nuc.denoising = Nucdenoising.FOR, RO.size =  ROsize.FOR, TEST=F,getCell = getCell.FOR,
