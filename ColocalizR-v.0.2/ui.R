@@ -4,9 +4,10 @@ library(MiXR)
 library(pbapply)
 library(gtools)
 library(rChoiceDialogs)
-library(doParallel)
-library(foreach)
-
+#
+library("doParallel")
+library("foreach")
+#
 
 ui = fluidPage(
   
@@ -19,47 +20,47 @@ ui = fluidPage(
              fluidRow(
                column(2,
                       fluidRow(align='left',
-                               h3('Plate information'),
-                               wellPanel(
-                                 radioButtons("UseSQL", label = "USE SQL :",inline = T,
-                                              choices = c("YES","NO"),selected = "NO"),
-                                 radioButtons("MulPlates", label = "Multiple plates ?",inline = T,
-                                              choices = c("YES","NO"),selected = "NO"),
-                                 radioButtons("TimeCourse", label = "Time course experiment ?",inline = T,
-                                              choices = c("YES","NO"),selected = "NO"),
-                                 conditionalPanel(
-                                   condition = "input.UseSQL == 'YES'",
-                                   h4(''),
-                                   uiOutput("Server")
-                                 ),
-                                 conditionalPanel(
-                                   condition = "input.UseSQL == 'NO'",
-                                   strong('Image location :'),
-                                   h4(''),
-                                   actionButton("folder", label = 'Select folder')
-                                 ),
-                                 h4(''),
-                                 uiOutput("PlateIDs")
-                               ),
-                               
-                               wellPanel(
-                                 radioButtons("PLATEMAP", label = "Plate map :",inline = T,
-                                              choices = c("YES","NO"),selected = "YES"),
-                                 conditionalPanel(
-                                   condition = "input.PLATEMAP == 'YES'",  
-                                   fileInput(inputId = 'platemaps', 
-                                             label = 'Select plate map (CSV)',
-                                             multiple = TRUE,
-                                             accept=c(".csv"))
-                                 )
-                               )),
+                      h3('Plate information'),
+                      wellPanel(
+                        radioButtons("UseSQL", label = "USE SQL :",inline = T,
+                                     choices = c("YES","NO"),selected = "NO"),
+                        radioButtons("MulPlates", label = "Multiple plates ?",inline = T,
+                                     choices = c("YES","NO"),selected = "NO"),
+                        radioButtons("TimeCourse", label = "Time course experiment ?",inline = T,
+                                     choices = c("YES","NO"),selected = "NO"),
+                        conditionalPanel(
+                          condition = "input.UseSQL == 'YES'",
+                          h4(''),
+                          uiOutput("Server")
+                        ),
+                        conditionalPanel(
+                          condition = "input.UseSQL == 'NO'",
+                          strong('Image location :'),
+                          h4(''),
+                          actionButton("folder", label = 'Select folder')
+                        ),
+                        h4(''),
+                        uiOutput("PlateIDs")
+                      ),
+                      
+                      wellPanel(
+                        radioButtons("PLATEMAP", label = "Plate map :",inline = T,
+                                     choices = c("YES","NO"),selected = "YES"),
+                        conditionalPanel(
+                          condition = "input.PLATEMAP == 'YES'",  
+                          fileInput(inputId = 'platemaps', 
+                                    label = 'Select plate map (CSV)',
+                                    multiple = TRUE,
+                                    accept=c(".csv"))
+                        )
+                      )),
                       fluidRow(align='center',
-                               br(),
-                               (actionButton("ImpImg", label='IMPORT PLATE INFO',style='padding:10px; font-size:125%;align:center',width=200)),
-                               br(),
-                               br(),
-                               br(),
-                               htmlOutput("SetStatus", inline=F)
+                      br(),
+                      (actionButton("ImpImg", label='IMPORT PLATE INFO',style='padding:10px; font-size:125%;align:center',width=200)),
+                      br(),
+                      br(),
+                      br(),
+                      htmlOutput("SetStatus", inline=F)
                       )
                ),
                
@@ -87,18 +88,18 @@ ui = fluidPage(
                       
                       wellPanel(
                         fluidRow(
-                          column(width=4,
-                                 radioButtons("BlueChannel", label = "Nucleus :",inline = F,
-                                              choices = c(1,2,3),selected = 1)
-                          ),
-                          column(width=4,
-                                 radioButtons("GreenChannel", label = "Compt 1 :",inline = F,
-                                              choices = c(1,2,3),selected = 2)
-                          ),
-                          column(width=4,
-                                 radioButtons("RedChannel", label = "Compt 2 :",inline = F,
-                                              choices = c(1,2,3),selected = 3)
-                          )),
+                        column(width=4,
+                        radioButtons("BlueChannel", label = "Nucleus :",inline = F,
+                                     choices = c(1,2,3),selected = 1)
+                        ),
+                        column(width=4,
+                        radioButtons("GreenChannel", label = "Compt 1 :",inline = F,
+                                     choices = c(1,2,3),selected = 2)
+                        ),
+                        column(width=4,
+                        radioButtons("RedChannel", label = "Compt 2 :",inline = F,
+                                     choices = c(1,2,3),selected = 3)
+                        )),
                         radioButtons("Cyto", label = "Cytoplasm segmentation on :",inline = T,
                                      choices = c('Compt 1','Compt 2','Both'),selected = 'Compt 1'),
                         style = 'padding-left:3px;padding-right:3px;')
@@ -138,11 +139,11 @@ ui = fluidPage(
                       wellPanel(
                         radioButtons("Nucrm", label = "Remove nucleus from mask?",inline = T,
                                      choices = c("YES","NO"),selected = "YES"),
-                        
+
                         conditionalPanel(
                           condition = "input.Nucrm == 'YES'",                        
                           radioButtons("Seg", label = "Segmentation method",inline = T,
-                                       choices = c("Fast","Robust"),selected = "Fast"),
+                                     choices = c("Fast","Robust"),selected = "Fast"),
                           radioButtons("Denoising", label = "Denoise image ?",inline = T,
                                        choices = c("YES","NO"),selected = "NO"),
                           conditionalPanel(

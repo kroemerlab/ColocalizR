@@ -12,7 +12,6 @@ server = function(input, output, session) {
   }
   
   OS = Sys.info()[['sysname']]
-  
   #===================================================================================================================================================
   
   ## PlateMap information
@@ -37,14 +36,14 @@ server = function(input, output, session) {
     }
     
     if(input$UseSQL == 'YES'){
-      output$Server = renderUI({
-        selectizeInput("SERVER","Server to use :", choices = list("YODA-SERVER" = "YODA-SERVER","VIDEO-SERVER" = "VIDEO-SERVER","HTS-SERVER" = "HTS-SERVER","WORKING-SERVER" = "WORKING-SERVER"), 
-                       multiple = F, selected="YODA-SERVER")
-      })
-      output$PlateIDs = renderUI({
-        Plates = unique(as.numeric(GetMDCInfo(input$SERVER)$PlateID))
-        selectizeInput("SPlates","Plate selection :", choices = Plates[order(Plates, decreasing = T)], multiple = multi, selected=Plates[length(Plates[!is.na(Plates)])])
-      })
+    output$Server = renderUI({
+      selectizeInput("SERVER","Server to use :", choices = list("YODA-SERVER" = "YODA-SERVER","VIDEO-SERVER" = "VIDEO-SERVER","HTS-SERVER" = "HTS-SERVER","WORKING-SERVER" = "WORKING-SERVER"), 
+                     multiple = F, selected="YODA-SERVER")
+    })
+    output$PlateIDs = renderUI({
+      Plates = unique(as.numeric(GetMDCInfo(input$SERVER)$PlateID))
+      selectizeInput("SPlates","Plate selection :", choices = Plates[order(Plates, decreasing = T)], multiple = multi, selected=Plates[length(Plates[!is.na(Plates)])])
+    })
     }else{
       observeEvent(input$folder,{
         if(OS == 'Darwin'){
@@ -64,14 +63,14 @@ server = function(input, output, session) {
       })
     }
   })
-  
+
   observeEvent(input$savefolder,{
     if(OS == 'Darwin'){
       Plates$resultsloc = paste(normalizePath(path.expand(as.character(system("osascript -e 'set thisPOSIXPath to (the POSIX path of (choose folder with prompt \"Select location for saving your results\"))'")))), 'Results', sep = '/')
     }else{
       Plates$resultsloc = paste(normalizePath(path.expand(rchoose.dir(caption = "Select location for saving your results")), winslash = '/'), 'Results', sep = '/')
     }
-    
+
     if(length(Plates$resultsloc) == 0){
       Plates$resultsloc = paste(normalizePath(path.expand(getwd()), winslash = '/'), 'Results', sep = '/')
     }
@@ -82,7 +81,7 @@ server = function(input, output, session) {
   observeEvent(input$ImpImg,{
     withProgress({
       setProgress(message = "Loading images info...")
-      
+
       cl = makeCluster(detectCores())
       clusterExport(cl, c('getImInfo'))
       clusterEvalQ(cl, c(library(MiXR),library(pbapply),library(gtools),library(reshape2),library(naturalsort),library(doParallel)))
@@ -90,16 +89,16 @@ server = function(input, output, session) {
       
       PlateIDs = as.numeric(input$SPlates)
       TimeCourse = (input$TimeCourse == 'YES')
-      if(input$UseSQL == 'YES'){
-        SERVER = input$SERVER
-        imInfo = do.call('smartbind',parLapply(cl = cl, PlateIDs, function(x) getImInfo(x, SQL.use = T, SERVER = SERVER, TimeCourse = TimeCourse)))
-      }else if(input$UseSQL == 'NO'){
-        folders = Plates$folders
-        paths = Plates$paths
-        imInfo = do.call('smartbind',parLapply(cl = cl, PlateIDs, function(x) getImInfo(x, SQL.use = F, PlateLoc = paths[grep(x, folders, fixed = T)], TimeCourse = TimeCourse)))
-      }
+        if(input$UseSQL == 'YES'){
+          SERVER = input$SERVER
+          imInfo = do.call('smartbind',parLapply(cl = cl, PlateIDs, function(x) getImInfo(x, SQL.use = T, SERVER = SERVER, TimeCourse = TimeCourse)))
+        }else if(input$UseSQL == 'NO'){
+          folders = Plates$folders
+          paths = Plates$paths
+          imInfo = do.call('smartbind',parLapply(cl = cl, PlateIDs, function(x) getImInfo(x, SQL.use = F, PlateLoc = paths[grep(x, folders, fixed = T)], TimeCourse = TimeCourse)))
+        }
       stopCluster(cl)
-      
+
       PM = data.frame()
       if(input$PLATEMAP == 'YES'){
         platemaps <- reactive({
@@ -111,12 +110,12 @@ server = function(input, output, session) {
         if(is.null(input$platemaps)) return(NULL)
         
         PM = do.call('smartbind', lapply(platemaps()$datapath, function(x) read.csv(x, header = T, sep=',', stringsAsFactors = T)))
-        
+
       }
       ConInf$Welldat <- imInfo
       ConInf$DrugID <- PM
     })
-    
+
     #Initialize test conditions
     output$SampPlate = renderUI({
       Plate1 = Plates$PlateIDs[1]
@@ -139,7 +138,7 @@ server = function(input, output, session) {
     }) 
     
   })
-  
+
   
   ##Check if settings are valid : Basic error handling
   observe({
@@ -202,7 +201,7 @@ server = function(input, output, session) {
       Adj$adj_value = input$adj2
     }
   })
-  
+
   Zoom = reactiveValues(zoom_value = 1)
   observeEvent((input$zoom1 | input$zoom2 | input$zoom3 | input$zoom4),{
     Inputs = c(input$zoom1,input$zoom2,input$zoom3,input$zoom4)
@@ -218,7 +217,7 @@ server = function(input, output, session) {
                         min=1, max=5, step=0.5)
     }
   })
-  
+
   #===================================================================================================================================================
   
   ## Image display for testing channel parameters
@@ -253,7 +252,7 @@ server = function(input, output, session) {
     Center = dim(ThumbIm$I[[1]])/2
     xEx1 = ((Center[1]*(1-(1/Zoom$zoom_value))):(Center[1]*(1+(1/Zoom$zoom_value))))
     yEx1 = ((Center[2]*(1-(1/Zoom$zoom_value))):(Center[2]*(1+(1/Zoom$zoom_value))))
-    
+
     output$LookUp1 <-renderPlot({
       display((ThumbIm$I[[1]])[xEx1,yEx1,], method='raster')
     })
@@ -266,9 +265,9 @@ server = function(input, output, session) {
     output$LookUp4 <-renderPlot({
       display((ThumbIm$I[[4]])[xEx1,yEx1,], method='raster')
     })
-    
+
   })
-  
+
   
   ## Give an idea of PCC
   
@@ -345,59 +344,62 @@ server = function(input, output, session) {
       #------------------------------------------------------------
       setProgress(message = "Treating images")
       t1=Sys.time()
-      
+
       Summary <- foreach(ID = UniID,j=icount(), .packages = c("EBImage","tiff","reshape2","gtools"),.inorder=FALSE,
-                         .combine = 'smartbind',.export=c('coloc.Sgl', 'ReconsOpening', 'geodilate', 'AutoAdjust')) %dopar% {
-                           IDs = reshape2::colsplit(ID, pattern = '_', names = c('P', 'TI', 'W', 'S'))
-                           try({
-                             coloc.Sgl(MyImCl = MyImCl.FOR, Plate = IDs$P, Time = IDs$TI, Well= IDs$W, Site = IDs$S, Blue = Blue.FOR, Green = Green.FOR,Red = Red.FOR, auto2 = auto2.FOR, auto3 = auto3.FOR,
-                                       Cyto = Cyto.FOR,Nuc.rm = Nuc.rm.FOR, TopSize2 = TopSize2.FOR, TopSize3 = TopSize3.FOR, Nuc.denoising = Nucdenoising.FOR, RO.size =  ROsize.FOR, TEST=F,getCell = getCell.FOR,
-                                       w1OFF = w1OFF.FOR,w2OFF = w2OFF.FOR,w3OFF = w3OFF.FOR, adj = adj.FOR, adj.step1 = adj.step1.FOR, adj.step2 = adj.step2.FOR, adj.step3 = adj.step3.FOR, add.features = ExpFea.FOR, 
-                                       writeSeg = ExpSeg.FOR, path = path.FOR, getRange = c(T,T,T))
-                           }) 
-                         }
-      
+                           .combine = 'smartbind',.export=c('coloc.Sgl', 'ReconsOpening', 'geodilate', 'AutoAdjust')) %dopar% {
+      IDs = reshape2::colsplit(ID, pattern = '_', names = c('P', 'TI', 'W', 'S'))
+                             try({
+                               coloc.Sgl(MyImCl = MyImCl.FOR, Plate = IDs$P, Time = IDs$TI, Well = IDs$W, Site = IDs$S, Blue = Blue.FOR, Green = Green.FOR,Red = Red.FOR, auto2 = auto2.FOR, auto3 = auto3.FOR,
+                                         Cyto = Cyto.FOR,Nuc.rm = Nuc.rm.FOR, TopSize2 = TopSize2.FOR, TopSize3 = TopSize3.FOR, Nuc.denoising = Nucdenoising.FOR, RO.size =  ROsize.FOR, TEST=F,getCell = getCell.FOR,
+                                         w1OFF = w1OFF.FOR,w2OFF = w2OFF.FOR,w3OFF = w3OFF.FOR, adj = adj.FOR, adj.step1 = adj.step1.FOR, adj.step2 = adj.step2.FOR, adj.step3 = adj.step3.FOR, add.features = ExpFea.FOR, 
+                                         writeSeg = ExpSeg.FOR, path = path.FOR, getRange = c(T,T,T))
+                             })
+                           }
       colnames(Summary)[c(2:5)]=c('PlateID', 'Time','WellID','SiteID')
+      Summary$ObjNum = as.numeric(Summary$ObjNum)
       Summary = Summary[order(Summary$PlateID, Summary$Time,Summary$SiteID,Summary$WellID),,drop=F]
       Summary$GlobalID = paste(Summary$PlateID, Summary$Time, Summary$Well, sep = '_')
       
       ####
       parLapply(cl = cl, unique(Summary$PlateID), function(x){
         PSummary = Summary[which(Summary$PlateID == x),]
-        pdf(paste(path.FOR, x,'BoxPlot.pdf', sep = '/'),w=12,h=7)
-        bp = boxplot(as.numeric(PCC) ~ GlobalID, data= PSummary[!is.na(PSummary$WellID),], ylim=c(-1,1), xaxt='n', outline=F, col='green',xpd=T,xaxs='i',yaxs='i',bty='n')
-        stripchart(as.numeric(PCC) ~ GlobalID, data= PSummary,vertical=T,pch=1,add=T,cex=0.3)
-        text(c(1:length(bp$n)), rep(-1,length(bp$n)), gsub('_|NA',' ',bp$names),cex=0.7, srt=45,adj=c(1.1,1.1),xpd=T)
-        dev.off()
+        if(any(!is.na(Summary$PCC))){
+          pdf(paste(path.FOR, x,'BoxPlot.pdf', sep = '/'),w=12,h=7)
+          bp = boxplot(as.numeric(PCC) ~ GlobalID, data= PSummary[!is.na(PSummary$WellID),], ylim=c(-1,1), xaxt='n', outline=F, col='green',xpd=T,xaxs='i',yaxs='i',bty='n')
+          stripchart(as.numeric(PCC) ~ GlobalID, data= PSummary,vertical=T,pch=1,add=T,cex=0.3)
+          text(c(1:length(bp$n)), rep(-1,length(bp$n)), gsub('_|NA',' ',bp$names),cex=0.7, srt=45,adj=c(1.1,1.1),xpd=T)
+          dev.off()
+        }
+
         if(ExportResults.FOR == 'CSV'){
-          write.table(PSummary[!is.na(PSummary$WellID),c(1:11,18:73)], paste(path.FOR, paste0(x,'/Results.csv'), sep = '/'), sep=',',row.names=F)
+          write.table(PSummary[!is.na(PSummary$WellID),], paste(path.FOR, paste0(x,'/Results.csv'), sep = '/'), sep=',',row.names=F)
         }else{
-          ExpSummary = PSummary[!is.na(PSummary$WellID),c(1:11,18:73)]
+          ExpSummary = PSummary[!is.na(PSummary$WellID),]
           save(ExpSummary, file = paste(path.FOR,paste0(x,'/Results.RData'), sep = '/'))
         }
       })
       
-      if(getCell.FOR==T & as.FCS.FOR==T){
-        clusterEvalQ(cl, library("flowCore"))
-        parLapply(cl = cl, unique(Summary$GlobalID), function(x){
-          WSummary = Summary[which(Summary$GlobalID == x),]
-          FlowFrame = new("flowFrame",exprs=as.matrix(WSummary[-which(WSummary$ObjNum==0),c(12:17)]))
-          write.FCS(FlowFrame, paste(path.FOR, paste(gsub('_','/', x), 'fcs', sep='.'), sep = '/'))
-        })
-        parLapply(cl = cl, unique(Summary$PlateID), function(x){
-          PSummary = Summary[which(Summary$PlateID == x),]
-          FlowFrame = new("flowFrame",exprs=as.matrix(PSummary[-which(PSummary$ObjNum==0),c(12:17)]))
-          write.FCS(FlowFrame, paste(path.FOR, paste0(x, '/GlobalFCS.fcs'), sep = '/'))
-        })
-      }
-      
-      
-      
+       if(getCell.FOR==T & as.FCS.FOR==T){
+         clusterEvalQ(cl, library("flowCore"))
+         parLapply(cl = cl, unique(Summary$GlobalID), function(x){
+                                                          WSummary = Summary[which(Summary$GlobalID == x),]
+                                                          FlowFrame = new("flowFrame",exprs=as.matrix(WSummary[-which(WSummary$ObjNum==0),c(12:17)]))
+                                                          write.FCS(FlowFrame, paste(path.FOR, paste(gsub('_','/', x), 'fcs', sep='.'), sep = '/'))
+                                                      })
+         parLapply(cl = cl, unique(Summary$PlateID), function(x){
+                                                          PSummary = Summary[which(Summary$PlateID == x),]
+                                                          FlowFrame = new("flowFrame",exprs=as.matrix(PSummary[-which(PSummary$ObjNum==0),c(12:17)]))
+                                                          write.FCS(FlowFrame, paste(path.FOR, paste0(x, '/GlobalFCS.fcs'), sep = '/'))
+                                                      })
+       }
+         
+
+  
       stopCluster(cl)
       setProgress(message = "End of treatments!")
-      
+
       #---------------------------------------------------------
-      
+
       setProgress(message = "Exporting data...")
       t2=Sys.time()
       write.csv(cbind.data.frame(log.file, Time = difftime(t2,t1, units = 'mins')),paste(path.FOR,'log.csv', sep = '/'),sep=',',row.names=F)
