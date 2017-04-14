@@ -137,12 +137,12 @@ ui = fluidPage(
                column(3,align='center',
                       br(),
                       wellPanel(
-                        radioButtons("Nucrm", label = "Remove nucleus from mask?",inline = T,
+                        radioButtons("Nucrm", label = "Remove nucleus from mask ?",inline = T,
                                      choices = c("YES","NO"),selected = "YES"),
 
                         conditionalPanel(
                           condition = "input.Nucrm == 'YES'",                        
-                          radioButtons("Seg", label = "Segmentation method",inline = T,
+                          radioButtons("Seg", label = "Segmentation method :",inline = T,
                                      choices = c("Fast","Robust"),selected = "Fast"),
                           radioButtons("Denoising", label = "Denoise image ?",inline = T,
                                        choices = c("YES","NO"),selected = "NO"),
@@ -177,7 +177,7 @@ ui = fluidPage(
                         conditionalPanel(
                           condition = "input.Cyto == 'Compt 1' | input.Cyto == 'Both'",
                           numericInput('adj1',label='Adjustment for cytoplasm segmentation',value = 1, step = 0.01, min = -2, max = 2)),
-                        radioButtons("auto2", label = "Automated segmentation",inline = T,
+                        radioButtons("auto2", label = "Automated segmentation :",inline = T,
                                      choices = c("YES","NO"),selected = "YES"),
                         conditionalPanel(
                           condition = "input.auto2 == 'NO'",
