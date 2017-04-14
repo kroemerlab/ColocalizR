@@ -206,7 +206,7 @@ ui = fluidPage(
                         conditionalPanel(
                           condition = "input.Cyto == 'Compt 2' | input.Cyto == 'Both'",
                           numericInput('adj2',label='Adjustment for cytoplasm segmentation', value = 1, step = 0.01, min = -2, max = 2)),
-                        radioButtons("auto3", label = "Automated segmentation",inline = T,
+                        radioButtons("auto3", label = "Automated segmentation :",inline = T,
                                      choices = c("YES","NO"),selected = "YES"),
                         conditionalPanel(
                           condition = "input.auto3 == 'NO'",
