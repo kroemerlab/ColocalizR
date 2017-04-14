@@ -22,7 +22,7 @@ ui = fluidPage(
                       fluidRow(align='left',
                       h3('Plate information'),
                       wellPanel(
-                        radioButtons("UseSQL", label = "USE SQL :",inline = T,
+                        radioButtons("UseSQL", label = "USE SQL ?",inline = T,
                                      choices = c("YES","NO"),selected = "NO"),
                         radioButtons("MulPlates", label = "Multiple plates ?",inline = T,
                                      choices = c("YES","NO"),selected = "NO"),
@@ -75,7 +75,7 @@ ui = fluidPage(
                           radioButtons("ExportFCS", label = "Export cell data as a fcs file ?",inline = T,
                                        choices = c("YES","NO"),selected = "NO")
                         ),
-                        radioButtons("ExportResults", label = "Export results as :",inline = T,
+                        radioButtons("ExportResults", label = "Export results as ?",inline = T,
                                      choices = c("RData", "CSV"),selected = "RData"),
                         radioButtons("ExpSeg", label = "Export segmentation ?",inline = T,
                                      choices = c("YES","NO"),selected = "NO"),
