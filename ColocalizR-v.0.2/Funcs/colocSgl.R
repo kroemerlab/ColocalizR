@@ -7,9 +7,9 @@ library(doParallel)
 options(warn=-1)
 
 coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=T,auto2=T, auto3=T, Cyto = 'Compt 2',Nuc.rm = T, Seg.method = 'Fast', TopSize1 = 29, TopSize2 = 29, TopSize3 = 29,  w1OFF = 0.1, w2OFF = 0.15, w3OFF = 0.1, Nuc.denoising = T,
-                     RO.size = 25, Rm1=c(0,0.3), Rm2=c(0,0.1),Rm3=c(0,0.1), adj = 1, adj.step1 = 2, adj.step2 = 2, adj.step3 = 2, getCell = F, add.features = F, writeSeg = T, TEST = F, FullIm = F,Extract = 500, getRange = c(F,F,F), path = '...'){  
+                     RO.size = 25, Rm1=c(0,0.3), Rm2=c(0,0.1),Rm3=c(0,0.1), adj = 1, adj.step1 = 2, adj.step2 = 2, adj.step3 = 2, getCell = F, add.features = F, writeSeg = T, TEST = F, FullIm = F, getRange = c(F,F,F), path = '...'){  
   
-  #==================
+  #================================================================================================================
   
   if(missing(MyImCl)){
     return('Need images information to be imported!')
@@ -21,13 +21,11 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
   
   MyCols = colorRampPalette(c('white','black','darkblue','blue','green','red','orange','gold','yellow'))
   
-  #==================
-  
-  #################################################################################################################  
+  #================================================================================================================
   #IMAGE IMPORT
   Im = MyImCl[which(MyImCl$PlateID==Plate & MyImCl$TimePoint==Time & MyImCl$Well==Well & MyImCl$Site==Site),]
   #
-  nch = dim(Im)[1]
+  nch = nrow(Im)
   if(nch<2 | nch>3){
     return('Need at least two and at most three channels !')
   }
@@ -35,12 +33,14 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     return('Cannot do cell-by-cell analysis without nuclear stain !')
   }
   
-  if(TEST==T && FullIm==F){
-    Center = dim(readTIFF(as.character(Im$MyIm[1]), info=F))/2
-    xEx = (Center[1]-Extract/2):(Center[1]+Extract/2)
-    yEx = (Center[2]-Extract/2):(Center[2]+Extract/2)
-  }
-
+  #Defunct------------------------------------------------------
+  # if(TEST==T && FullIm==F){
+  #   Center = dim(readTIFF(as.character(Im$MyIm[1]), info=F))/2
+  #   xEx = (Center[1]-Extract/2):(Center[1]+Extract/2)
+  #   yEx = (Center[2]-Extract/2):(Center[2]+Extract/2)
+  # }
+  #------------------------------------------------------------
+  
   IMList = list()  #Contains original images
   RAWList = list() #Contains adjusted images
   PList = list() #Contains measured images
@@ -61,18 +61,20 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
   if(any(getRange)){
     AutoRange = list()
   }
-  ################################################################################################################
+  #================================================================================================================
+  #IMAGE TREATMENT
   
   for(i in 1:nch){
     IP = as.character(Im$MyIm[which(Im$Channel==paste0('w',i))])
     if(length(IP) == 1){
-      RAW = readTIFF(IP, info=F)
-      if(TEST==T & FullIm == F){
-        RAW = RAW[xEx,yEx]
-      }
-      rm(IP)
+      RAW = readTIFF(IP, info=F);rm(IP)
+      #Defunct-------------------
+      #if(TEST==T & FullIm == F){
+      #RAW = RAW[xEx,yEx]
+      #}
+      #--------------------------
       
-      #############################################################################################################
+      #--------------------------------------------------------------------------------------------------------------
       
       if(any(getRange)){
         if(getRange[i]){
@@ -81,7 +83,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
           AutoRange = c(AutoRange, NA)
         }
       }
-      #############################################################################################################
+      #--------------------------------------------------------------------------------------------------------------
       #Gets Masks 
       
       LOG = RAW
@@ -126,7 +128,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       }
       
       if((Nuc.rm==T|getCell==T) & i==Blue){
-
+        
         if(getCell==T){
           Nuc = RAW
           if(Nuc.denoising){
@@ -164,7 +166,8 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     }
   }
   
-  #############################################################################################################
+  #--------------------------------------------------------------------------------------------------------------
+  
   if(nch>2){
     
     if(Nuc.rm==T){
@@ -192,10 +195,11 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     COLOC = COLOC*OMask
     UNION = UNION*OMask 
   }
-
-  ################################################################################################################
-  #Converting images to arrays & calculate coeff
   
+  #================================================================================================================
+  #IMAGE ANALYSIS
+  
+  #Converting images to arrays & calculate coeff
   pixG = as.numeric(PList[[Green]])
   pixR = as.numeric(PList[[Red]])
   
@@ -206,9 +210,10 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
   pixGM = pixG[which(pixM!=0)]
   pixRM = pixR[which(pixM!=0)]
   
-  ################################################################################################################
+  #----------------------------------------------------------------------------------------------------------------
   
   lim=c(0,1)
+  
   ####
   
   ICQ.calc = function(MAT){
@@ -234,7 +239,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
   }
   ###
   
-  ##############################################################################################################################
+  #----------------------------------------------------------------------------------------------------------------
   #Correlation Values calculation on whole image
   
   PCC = cor(pixGM, pixRM)
@@ -250,34 +255,34 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     Rm3 = AutoRange[[Red]]
   }
   
-  if(TEST==T){
+  if(TEST){
     
     if(getCell==T){
       
       testR = paintObjects(OMask,paintObjects(MList[[Red]],rgbImage(red=(EBImage::normalize(IMList[[Red]],inputRange=Rm3))),col = 'green'),col='yellow')
       testG = paintObjects(OMask,paintObjects(MList[[Green]],rgbImage(green=(EBImage::normalize(IMList[[Green]],inputRange=Rm2))), col = 'red'),col = 'yellow')
-
+      
       if(nch>2){
         if(Nuc.rm==T){
           testB = paintObjects(NMask,rgbImage(blue=(EBImage::normalize(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
           testRGB = paintObjects(NMask,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(blue = EBImage::normalize(IMList[[Blue]],inputRange=Rm1), green=EBImage::normalize(IMList[[Green]], inputRange=Rm2),red =EBImage::normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
-                                 col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T)
+                                                                                 col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T)
         }else{
           testB = rgbImage(blue=(EBImage::normalize(IMList[[Blue]],inputRange=Rm1)))
           testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(green=EBImage::normalize(IMList[[Green]], inputRange=Rm2),red =EBImage::normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
-                                 col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
+                                                              col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
         }
       }
     }else{
       
       testR = paintObjects(CMask,paintObjects(MList[[Red]],rgbImage(red=(EBImage::normalize(IMList[[Red]],inputRange=Rm3))),col = 'green'),col='yellow')
       testG = paintObjects(CMask,paintObjects(MList[[Green]],rgbImage(green=(EBImage::normalize(IMList[[Green]],inputRange=Rm2))), col = 'red'),col = 'yellow')
-
+      
       if(nch>2){
         if(Nuc.rm==T){
           testB = paintObjects(T1,rgbImage(blue=(EBImage::normalize(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
           testRGB = paintObjects(T1,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(blue = EBImage::normalize(IMList[[Blue]],inputRange=Rm1), green=EBImage::normalize(IMList[[Green]], inputRange=Rm2),red =EBImage::normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
-                                                                                 col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T)
+                                                                              col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T)
         }else{
           testB = rgbImage(blue=(EBImage::normalize(IMList[[Blue]],inputRange=Rm1)))
           testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(green=EBImage::normalize(IMList[[Green]], inputRange=Rm2),red =EBImage::normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
@@ -291,12 +296,13 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     
     ICQ = ICQ.calc(cbind(pixGM,pixRM))
     MOC = MOC.calc(cbind(pixGM,pixRM)) #Manders Overlap coefficient
+    SOCR = length(which(COLOC!=0))/length(which(MList[[Red]]==1))  #Surface Overlap coeff for red component
+    SOCG = length(which(COLOC!=0))/length(which(MList[[Green]]==1))  #Surface Overlap coeff for green component
     
-    SOCR = length(which(COLOC!=0))/length(which(MList[[Red]]==1))  #Manders Overlap coeff for red component
-    SOCG = length(which(COLOC!=0))/length(which(MList[[Green]]==1))  #Manders Overlap coeff for green component
+    #----------------------------------------------------------------------------------------------------------------
+    #Correlation Values calculation on a cell-by-cell basis
     
     if(getCell==T){
-      #Correlation calculation cell by cell
       
       PixTable = data.frame(Object = pixM[which(pixM!=0)], C2=pixGM, C3 = pixRM, COLOC = as.numeric(COLOC)[which(pixM!=0)])
       
@@ -313,9 +319,10 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
         SOCRi = as.numeric(unlist(by(PixTable[,c(3,4)],PixTable$Object,FUN=function(x)length(which(x[,2]!=0))/length(which(x[,1]!=0)))))
         SOCGi = as.numeric(unlist(by(PixTable[,c(2,4)],PixTable$Object,FUN=function(x)length(which(x[,2]!=0))/length(which(x[,1]!=0)))))
       }
-      CellTable = data.frame(ObjNum, Plate, Time, Well, Site, PCC = PCCi, ICQ = ICQi,SOC= SOCi, SOCR = SOCRi,SOCG = SOCGi,MOC = MOCi, PCC_FCS = 50*(PCCi + 1), ICQ_FCS = 100*(ICQi + 0.5), SOC_FCS = 100*SOCi, SOCR_FCS = 100*SOCRi, SOCG_FCS = 100*SOCGi, MOC_FCS = 100*MOCi)
-
-      ## Features
+      CellTable = data.frame(ObjNum, Plate, Time, Well, Site, PCC = PCCi, ICQ = ICQi,SOC= SOCi, SOCR = SOCRi,SOCG = SOCGi,MOC = MOCi,
+                             PCC_FCS = 50*(PCCi + 1), ICQ_FCS = 100*(ICQi + 0.5), SOC_FCS = 100*SOCi, SOCR_FCS = 100*SOCRi, SOCG_FCS = 100*SOCGi, MOC_FCS = 100*MOCi)
+      
+      ## Features ##
       if(add.features == T){
         # Nucleus
         NucIDs = sort(unique(as.numeric(NMask[which(NMask!=0)])))
@@ -351,7 +358,8 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     }
     
     
-    ################################################################################################################################
+    #================================================================================================================
+    #DATA EXPORT
     if(!is.na(CellTable$ObjNum)){
       pdf(paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_PixelProfiling.pdf'),w=10,h=10)
       smoothScatter(pixGM, pixRM, nrpoints = 0, colramp=MyCols, main=paste(Well,'-',Site, sep=' '),nbin=512,
@@ -359,7 +367,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       legend('topright',bty='n',cex=0.6,legend=c(paste('PCC=',round(PCC,2)),paste('ICQ=',round(ICQ,2)),paste('MOC=',round(MOC,2)),paste('SOC=',round(SOC,2))),text.col='red')
       dev.off()
     }
-
+    
     if(Site==1 & writeSeg==T){
       if(getCell==T){
         if(nch>2){ 
@@ -379,15 +387,17 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
         }
       }
     }
-
+    
     rm(list=grep('Mask|List', ls()))
     gc()
     
     #Write results in arrays
-    if(getCell==F){
-      return(c(Plate,Time,Well,Site,PCC,ICQ,SOC,SOCR,SOCG,MOC, PCC_FCS = 50*(PCC + 1), ICQ_FCS = 100*(ICQ + 0.5), SOC_FCS = 100*SOC, SOCR_FCS = 100*SOCR, SOCG_FCS = 100*SOCG, MOC_FCS = 100*MOC))
+    if(!getCell){
+      return(c(Plate,Time,Well,Site,PCC,ICQ,SOC,SOCR,SOCG,MOC,
+               PCC_FCS = 50*(PCC + 1), ICQ_FCS = 100*(ICQ + 0.5), SOC_FCS = 100*SOC, SOCR_FCS = 100*SOCR, SOCG_FCS = 100*SOCG, MOC_FCS = 100*MOC))
     }else{
-      return(smartbind(CellTable,data.frame(Plate,Time,Well,Site,ObjNum=0,PCC,ICQ,SOC,SOCR,SOCG,MOC, PCC_FCS = 50*(PCC + 1), ICQ_FCS = 100*(ICQ + 0.5), SOC_FCS = 100*SOC, SOCR_FCS = 100*SOCR, SOCG_FCS = 100*SOCG, MOC_FCS = 100*MOC)))  
+      return(smartbind(CellTable,data.frame(Plate,Time,Well,Site,ObjNum=0,PCC,ICQ,SOC,SOCR,SOCG,MOC,
+                                            PCC_FCS = 50*(PCC + 1), ICQ_FCS = 100*(ICQ + 0.5), SOC_FCS = 100*SOC, SOCR_FCS = 100*SOCR, SOCG_FCS = 100*SOCG, MOC_FCS = 100*MOC)))  
     }
   }
 }
