@@ -88,7 +88,7 @@ server = function(input, output, session) {
         ncores=length(as.numeric(input$SPlates))
       }
       cl = parallel::makeCluster(ncores)
-      invisible(clusterEvalQ(cl, c(library(MiXR),library(pbapply),library(gtools),library(reshape2),library(ColocalizR),library(doParallel))))
+      invisible(clusterEvalQ(cl, c(library(MiXR),library(gtools),library(reshape2),library(ColocalizR),library(doParallel))))
       TimeCourse = (input$TimeCourse == 'YES')
       PlateIDs = as.numeric(input$SPlates)
       
