@@ -295,11 +295,11 @@ server = function(input, output, session) {
       #------------------------------------------------------------
       setProgress(message = "Creating clusters...")
       
-      if(Sys.info()[['sysname']] == 'Windows'){
+      #if(Sys.info()[['sysname']] == 'Windows'){
         cl <- parallel::makeCluster(input$UsedCores)
-      }else{
-        cl <- parallel::makeCluster(input$UsedCores, type='FORK')
-      }
+      #}else{
+        #cl <- parallel::makeCluster(input$UsedCores, type='FORK')
+      #}
       registerDoSNOW(cl)
       opts <- list(progress=function(n)(setProgress(value=n)))
       #------------------------------------------------------------
