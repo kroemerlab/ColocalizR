@@ -306,7 +306,7 @@ server = function(input, output, session) {
       setProgress(value=1, message = "Treating images")
       t1=Sys.time()
       
-      Summary = foreach(ID = UniID,j=icount(), .packages = c("EBImage","tiff","gtools","ColocalizR","shiny"),.inorder=TRUE,
+      Summary = foreach(ID = UniID,j=icount(), .packages = c("EBImage","tiff","gtools","ColocalizR","shiny"),.inorder=FALSE,
                         .combine = 'smartbind',.options.snow=opts) %dopar% {
                           
                           IDs = unlist(strsplit(ID,split='_'));names(IDs) = c('P', 'TI', 'W', 'S')
