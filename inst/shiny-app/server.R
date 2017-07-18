@@ -7,7 +7,6 @@ library(tiff)
 library(EBImage)
 library(RODBC)
 
-library(doSNOW)
 library(doParallel)
 library(foreach)
 
@@ -33,17 +32,25 @@ server = function(input, output, session) {
   ## Plate selection
   observe({
     if(input$UseSQL == 'YES'){
-      output$ODBC = renderUI({
-        selectizeInput("SERVER","Database :", choices = lapply(names(odbcDataSources(type='system')),function(x)x), 
-                       multiple = F, selected=tail(names(odbcDataSources(type='system')),n=1))
-      })
-      observeEvent(input$SERVER,{
-        ConInf$DB = GetMDCInfo(input$SERVER)
-        output$PlateIDs = renderUI({
-          Plates = unique(as.numeric((ConInf$DB)$PlateID))
-          selectizeInput("SPlates","Plate selection :", choices = Plates[order(Plates, decreasing = T)], multiple = input$MulPlates=='YES', selected=Plates[length(Plates[!is.na(Plates)])])
+      cnx = names(odbcDataSources(type='system'))
+      if(length(cnx!=0)){
+        output$ODBC = renderUI({
+          selectizeInput("SERVER","Database :", choices = lapply(names(odbcDataSources(type='system')),function(x)x), 
+                         multiple = F, selected=tail(names(odbcDataSources(type='system')),n=1))
         })
-      })
+        observeEvent(input$SERVER,{
+          ConInf$DB = GetMDCInfo(input$SERVER)
+          output$PlateIDs = renderUI({
+            Plates = unique(as.numeric((ConInf$DB)$PlateID))
+            selectizeInput("SPlates","Plate selection :", choices = Plates[order(Plates, decreasing = T)], multiple = input$MulPlates=='YES', selected=Plates[length(Plates[!is.na(Plates)])])
+          })
+        })
+      }else{
+        output$ODBC = renderUI({
+          textOutput("SERVER")
+        })
+        output$SERVER = renderText("No database detected")
+      }
     }})
   
   observeEvent(input$folder,{
@@ -152,8 +159,8 @@ server = function(input, output, session) {
   
   observeEvent(input$CPU.OP,{
     withProgress({
-    updateNumericInput(session, inputId = 'UsedCores', value = ResConfig(input$CellIm=='YES'))
-    setProgress(message='Optimized')
+      updateNumericInput(session, inputId = 'UsedCores', value = ResConfig(input$CellIm=='YES'))
+      setProgress(message='Optimized')
     })
   })
   
@@ -291,23 +298,22 @@ server = function(input, output, session) {
       setProgress(message = "Creating folders...")
       MyImCl.FOR$paths = paste(Plates$resultsloc, MyImCl.FOR$PlateID, MyImCl.FOR$TimePoint, MyImCl.FOR$Well, sep = '/')
       invisible(sapply(unique(MyImCl.FOR$paths), function(x) dir.create(x, recursive = T)))
-
+      
       #------------------------------------------------------------
       setProgress(message = "Creating clusters...")
       
-      #if(Sys.info()[['sysname']] == 'Windows'){
-        cl <- parallel::makeCluster(input$UsedCores)
-      #}else{
-        #cl <- parallel::makeCluster(input$UsedCores, type='FORK')
-      #}
-      registerDoSNOW(cl)
-      opts <- list(progress=function(n)(setProgress(value=n)))
+      if(Sys.info()[['sysname']] == 'Windows'){
+        cl <- makeSOCKCluster(input$UsedCores)
+      }else{
+        cl <- makeForkCluster(input$UsedCores)
+      }
+      registerDoParallel(cl)
       #------------------------------------------------------------
       setProgress(value=1, message = "Treating images")
       t1=Sys.time()
       
       Summary = foreach(ID = UniID,j=icount(), .packages = c("EBImage","tiff","gtools","ColocalizR","shiny"),.inorder=FALSE,
-                        .combine = 'smartbind',.options.snow=opts) %dopar% {
+                        .combine = pb.Combine()) %dopar% {
                           
                           IDs = unlist(strsplit(ID,split='_'));names(IDs) = c('P', 'TI', 'W', 'S')
                           try({

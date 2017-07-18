@@ -117,7 +117,7 @@ ui = fluidPage(
                         numericInput("UsedCores","CPU threads:",value=parallel::detectCores()),
                         actionButton("CPU.OP", label='Optimize',style='padding:10px; font-size:125%;align:center',width=200)
                       )),
-                    
+               
                conditionalPanel(
                  condition = "input.PLATEMAP == 'YES'",
                  column(3,align='left', offset = 0,
