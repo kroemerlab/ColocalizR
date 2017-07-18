@@ -278,7 +278,7 @@ server = function(input, output, session) {
       Cyto.FOR = input$Cyto;Nuc.rm.FOR = (input$Nucrm == 'YES'); Nucdenoising.FOR = (input$Denoising == 'YES'); ROsize.FOR = input$RO.size ; TopSize2.FOR = input$TopSize2; TopSize3.FOR = input$TopSize3;
       w1OFF.FOR = input$w1OFF;w2OFF.FOR = input$w2OFF;w3OFF.FOR = input$w3OFF; getCell.FOR = (input$CellIm == 'YES'); as.FCS.FOR = (input$ExportFCS == 'YES'); adj.FOR = Adj$adj_value; 
       adj.step1.FOR = input$adj.step1; adj.step2.FOR = input$adj.step2; adj.step3.FOR = input$adj.step3; Rm1.FOR = input$Rm1; Rm2.FOR = input$Rm2; Rm3.FOR= input$Rm3; 
-      ExportResults.FOR = input$ExportResults ; ExpSeg.FOR = (input$ExpSeg == 'YES') ; ExpFea.FOR = (input$ExpFea == 'YES') ; path.FOR = as.character(input$savefolder.str)
+      ExportResults.FOR = input$ExportResults ; ExpSeg.FOR = (input$ExpSeg == 'YES') ; ExpPDF.FOR = (input$ExpPDF == 'YES'); ExpFea.FOR = (input$ExpFea == 'YES') ; path.FOR = as.character(input$savefolder.str)
       #--
     })
     #Log files
@@ -314,7 +314,7 @@ server = function(input, output, session) {
                             coloc.Sgl(MyImCl = MyImCl.FOR, Plate = IDs['P'], Time = IDs['TI'], Well = IDs['W'], Site = IDs['S'], Blue = Blue.FOR, Green = Green.FOR,Red = Red.FOR, auto2 = auto2.FOR, auto3 = auto3.FOR,
                                       Cyto = Cyto.FOR,Nuc.rm = Nuc.rm.FOR, TopSize2 = TopSize2.FOR, TopSize3 = TopSize3.FOR, Nuc.denoising = Nucdenoising.FOR, RO.size =  ROsize.FOR, TEST=F,getCell = getCell.FOR,
                                       w1OFF = w1OFF.FOR,w2OFF = w2OFF.FOR,w3OFF = w3OFF.FOR, adj = adj.FOR, adj.step1 = adj.step1.FOR, adj.step2 = adj.step2.FOR, adj.step3 = adj.step3.FOR, add.features = ExpFea.FOR, 
-                                      writeSeg = ExpSeg.FOR, path = path.FOR, getRange = rep(TRUE,3))
+                                      writeSeg = ExpSeg.FOR, writePDF = ExpPDF.FOR, path = path.FOR, getRange = rep(TRUE,3))
                           })
                         }
       colnames(Summary)[c(2:5)]=c('PlateID', 'Time','WellID','SiteID');Summary$ObjNum = as.numeric(Summary$ObjNum)

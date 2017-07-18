@@ -11,7 +11,7 @@
 #' @export
 
 coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=T,auto2=T, auto3=T, Cyto = 'Compt 2',Nuc.rm = T, Seg.method = 'Fast', TopSize1 = 29, TopSize2 = 29, TopSize3 = 29,  w1OFF = 0.1, w2OFF = 0.15, w3OFF = 0.1, Nuc.denoising = T,
-                     RO.size = 25, Rm1=c(0,0.3), Rm2=c(0,0.1),Rm3=c(0,0.1), adj = 1, adj.step1 = 2, adj.step2 = 2, adj.step3 = 2, getCell = F, add.features = F, writeSeg = T, TEST = F, FullIm = F, getRange = c(F,F,F), path = '...'){  
+                     RO.size = 25, Rm1=c(0,0.3), Rm2=c(0,0.1),Rm3=c(0,0.1), adj = 1, adj.step1 = 2, adj.step2 = 2, adj.step3 = 2, getCell = F, add.features = F, writeSeg = T, writePDF = F, TEST = F, FullIm = F, getRange = c(F,F,F), path = '...'){  
   
   #================================================================================================================
   
@@ -221,16 +221,15 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       testR = paintObjects(OMask,paintObjects(MList[[Red]],rgbImage(red=(NormalizeIm(IMList[[Red]],inputRange=Rm3))),col = 'green'),col='yellow')
       testG = paintObjects(OMask,paintObjects(MList[[Green]],rgbImage(green=(NormalizeIm(IMList[[Green]],inputRange=Rm2))), col = 'red'),col = 'yellow')
       
-      if(nch>2){
-        if(Nuc.rm){
-          testB = paintObjects(NMask,rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
-          testRGB = paintObjects(NMask,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
-                                                                                 col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T)
-        }else{
-          testB = rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1)))
-          testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
-                                                              col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
-        }
+      
+      if(Nuc.rm){
+        testB = paintObjects(NMask,rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
+        testRGB = paintObjects(NMask,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+                                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T)
+      }else{
+        testB = rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1)))
+        testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+                                                            col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
       }
     }else{
       
@@ -238,7 +237,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       testG = paintObjects(CMask,paintObjects(MList[[Green]],rgbImage(green=(NormalizeIm(IMList[[Green]],inputRange=Rm2))), col = 'red'),col = 'yellow')
       
       if(nch>2){
-        if(Nuc.rm==T){
+        if(Nuc.rm){
           testB = paintObjects(T1,rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
           testRGB = paintObjects(T1,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T)
@@ -247,6 +246,10 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
           testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
         }
+      }else{
+        testB = rgbImage(blue = matrix(0,nrow=dim(MList[[Green]])[1],ncol=dim(MList[[Green]])[2]))
+        testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+                                                            col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
       }
     }
     return(list(testB, testG, testR, testRGB, Rm1, Rm2, Rm3, PCC, SOC))
@@ -319,16 +322,33 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     
     #================================================================================================================
     #DATA EXPORT
-    if(!is.na(CellTable$ObjNum)){
-      pdf(paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_PixelProfiling.pdf'),w=10,h=10)
-      smoothScatter(pixGM, pixRM, nrpoints = 0, colramp=MyCols, main=paste(Well,'-',Site, sep=' '),nbin=512,
-                    bandwidth=0.00005,xaxs='i',yaxs='i',xlab='Channel 2',ylab='Channel 3',useRaster=T,xlim=lim,ylim=lim)
-      legend('topright',bty='n',cex=0.6,legend=c(paste('PCC=',round(PCC,2)),paste('ICQ=',round(ICQ,2)),paste('MOC=',round(MOC,2)),paste('SOC=',round(SOC,2))),text.col='red')
-      dev.off()
+    if(writePDF){
+      if(getCell){
+        if(!is.na(CellTable$ObjNum)){
+          try({
+            pdf(paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_PixelProfiling.pdf'),w=10,h=10)
+            smoothScatter(pixGM, pixRM, nrpoints = 0, colramp=MyCols, main=paste(Well,'-',Site, sep=' '),nbin=512,
+                          bandwidth=0.00005,xaxs='i',yaxs='i',xlab='Channel 2',ylab='Channel 3',useRaster=T,xlim=lim,ylim=lim)
+            legend('topright',bty='n',cex=0.6,legend=c(paste('PCC=',round(PCC,2)),paste('ICQ=',round(ICQ,2)),paste('MOC=',round(MOC,2)),paste('SOC=',round(SOC,2))),text.col='red')
+            dev.off()
+          })
+        }
+      }else{
+        if(!is.na(PCC)){
+          try({
+            pdf(paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_PixelProfiling.pdf'),w=10,h=10)
+            smoothScatter(pixGM, pixRM, nrpoints = 0, colramp=MyCols, main=paste(Well,'-',Site, sep=' '),nbin=512,
+                          bandwidth=0.00005,xaxs='i',yaxs='i',xlab='Channel 2',ylab='Channel 3',useRaster=T,xlim=lim,ylim=lim)
+            legend('topright',bty='n',cex=0.6,legend=c(paste('PCC=',round(PCC,2)),paste('ICQ=',round(ICQ,2)),paste('MOC=',round(MOC,2)),paste('SOC=',round(SOC,2))),text.col='red')
+            dev.off()
+          })
+        }
+      }
     }
     
+    
     if(Site==1 & writeSeg){
-      if(getCell==T){
+      if(getCell){
         if(nch>2){ 
           writeImage(paintObjects(NMask,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                                                   col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'))
@@ -352,10 +372,10 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     
     #Write results in arrays
     if(!getCell){
-      return(c(Plate,Time,Well,Site,PCC,ICQ,SOC,SOCR,SOCG,MOC,
+      return(c(ObjNum=0,PlateID = Plate,Time = Time,WellID = Well,SiteID = Site,PCC = PCC,ICQ = ICQ,SOC = SOC,SOCR = SOCR,SOCG = SOCG,MOC = MOC,
                PCC_FCS = 50*(PCC + 1), ICQ_FCS = 100*(ICQ + 0.5), SOC_FCS = 100*SOC, SOCR_FCS = 100*SOCR, SOCG_FCS = 100*SOCG, MOC_FCS = 100*MOC))
     }else{
-      return(smartbind(CellTable,data.frame(Plate,Time,Well,Site,ObjNum=0,PCC,ICQ,SOC,SOCR,SOCG,MOC,
+      return(smartbind(CellTable,data.frame(Plate,Time,Well,Site,ObjNum=0,PCC = PCC,ICQ = ICQ,SOC = SOC,SOCR = SOCR,SOCG = SOCG,MOC = MOC,
                                             PCC_FCS = 50*(PCC + 1), ICQ_FCS = 100*(ICQ + 0.5), SOC_FCS = 100*SOC, SOCR_FCS = 100*SOCR, SOCG_FCS = 100*SOCG, MOC_FCS = 100*MOC)))  
     }
   }

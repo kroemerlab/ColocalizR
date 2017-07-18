@@ -66,6 +66,8 @@ ui = fluidPage(
                                      choices = c("RData", "CSV"),selected = "RData"),
                         radioButtons("ExpSeg", label = "Export segmentation ?",inline = T,
                                      choices = c("YES","NO"),selected = "NO"),
+                        radioButtons("ExpPDF", label = "Export Pixel Profiling ?",inline = T,
+                                     choices = c("YES","NO"),selected = "NO"),
                         conditionalPanel(
                           condition = "input.CellIm == 'YES'",
                           radioButtons("ExpFea", label = "Export cell features ?",inline = T,
