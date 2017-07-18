@@ -62,7 +62,8 @@ sudo apt-get install libssl-dev
 ## R Packages
 You have then to install some packages before running the application. To do so, open RStudio and copy/paste the lines below in the console :
 ```R
-install.packages(pkgs = c('devtools', 'R6','shiny','tiff','reshape','reshape2',               'RODBC','foreach','doParallel','stringi','rChoiceDialogs','gtools'), repos = "http://cloud.r-project.org")
+install.packages(pkgs=c('devtools','R6','shiny','tiff','reshape','reshape2','RODBC','foreach',
+'doParallel','stringi','rChoiceDialogs','gtools'), repos = "http://cloud.r-project.org")
 
 source("http://bioconductor.org/biocLite.R")
 biocLite(pkgs=c('EBImage','flowCore'), ask=F)
