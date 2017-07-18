@@ -67,8 +67,7 @@ install.packages(pkgs = c('devtools', 'R6','shiny','tiff','reshape','reshape2', 
 source("http://bioconductor.org/biocLite.R")
 biocLite(pkgs=c('EBImage','flowCore'), ask=F)
 
-devtools::install_github("kroemerlab/MiXR")
-devtools::install_github("kroemerlab/ColocalizR")
+devtools::install_github(c("kroemerlab/MiXR","kroemerlab/ColocalizR"))
 ```
 ## Application
 Once all is installed, you can run this line in the console to download and launch the app. 
