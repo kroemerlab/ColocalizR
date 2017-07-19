@@ -8,6 +8,7 @@ library(EBImage)
 library(RODBC)
 
 library(doParallel)
+library(doSNOW)
 library(foreach)
 
 server = function(input, output, session) {
@@ -301,20 +302,15 @@ server = function(input, output, session) {
       
       #------------------------------------------------------------
       setProgress(message = "Creating clusters...")
-      
-      if(Sys.info()[['sysname']] == 'Windows'){
-        cl <- makeSOCKCluster(input$UsedCores)
-      }else{
-        cl <- makeForkCluster(input$UsedCores)
-      }
-      registerDoParallel(cl)
+      cl <- makeSOCKcluster(input$UsedCores)
+      registerDoSNOW(cl)
+      opts <- list(progress=function(n)(setProgress(value=n)))
       #------------------------------------------------------------
       setProgress(value=1, message = "Treating images")
       t1=Sys.time()
       
       Summary = foreach(ID = UniID,j=icount(), .packages = c("EBImage","tiff","gtools","ColocalizR","shiny"),.inorder=FALSE,
-                        .combine = pb.Combine()) %dopar% {
-                          
+                        .combine = 'smartbind',.options.snow=opts) %dopar% {
                           IDs = unlist(strsplit(ID,split='_'));names(IDs) = c('P', 'TI', 'W', 'S')
                           try({
                             coloc.Sgl(MyImCl = MyImCl.FOR, Plate = IDs['P'], Time = IDs['TI'], Well = IDs['W'], Site = IDs['S'], Blue = Blue.FOR, Green = Green.FOR,Red = Red.FOR, auto2 = auto2.FOR, auto3 = auto3.FOR,
