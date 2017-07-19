@@ -91,7 +91,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       P[which(P<0)] = 0
       P = NormalizeIm(P)
       
-      PList = c(PList,list(P))
+      PList = c(PList,list(P));rm(P);gc()
       
       ##-------------------------------------------------
       #Here we get LOGs and cytosol Mask
@@ -116,21 +116,21 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
         CMask = CytoIm>(adj*otsu(CytoIm))
       }
       
-      if((Nuc.rm==T|getCell==T) & i==Blue){
-        
-        if(getCell==T){
+      if((Nuc.rm|getCell) & i==Blue){
+        if(getCell){
           Nuc = RAW
           if(Nuc.denoising){
             Nuc = ReconsOpening(Nuc, makeBrush(RO.size,'disc'))
           }
           T1 = opening(closing(fillHull(thresh(Nuc,w=50,h=50, offset = w1OFF)),makeBrush(5,'disc')),makeBrush(5,'disc'))
-          
+          rm(Nuc);gc()
           if(Seg.method == 'Fast'){
             seed = erode(T1, makeBrush(19,'box'))
             NMask = propagate(T1, bwlabel(seed), mask = T1)
           }else if(Seg.method == 'Robust'){
             NMask = watershed(distmap(opening(thresh(Nuc,w=50,h=50, offset = w1OFF),makeBrush(15,'disc'))))
           }
+          rm(list=c('Nuc','seed'))
         }
       }
       
@@ -267,7 +267,6 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     if(getCell){
       
       PixTable = data.frame(Object = pixM[which(pixM!=0)], C2=pixGM, C3 = pixRM, COLOC = as.numeric(COLOC)[which(pixM!=0)])
-      
       ObjNum = as.numeric(tapply(PixTable$Object, PixTable$Object, function(x)unique(x)))
       
       if(length(ObjNum) == 0){
@@ -283,6 +282,8 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       }
       CellTable = data.frame(ObjNum, Plate, Time, Well, Site, PCC = PCCi, ICQ = ICQi,SOC= SOCi, SOCR = SOCRi,SOCG = SOCGi,MOC = MOCi,
                              PCC_FCS = 50*(PCCi + 1), ICQ_FCS = 100*(ICQi + 0.5), SOC_FCS = 100*SOCi, SOCR_FCS = 100*SOCRi, SOCG_FCS = 100*SOCGi, MOC_FCS = 100*MOCi)
+      
+      rm(list=c(PCCi,ICQi,MOCi,SOCi,SOCRi,SOCGi));gc()
       
       ## Features ##
       if(add.features){
