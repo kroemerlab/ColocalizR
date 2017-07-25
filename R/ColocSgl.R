@@ -63,8 +63,8 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
   for(i in 1:nch){
     IP = as.character(Im$MyIm[which(Im$Channel==paste0('w',i))])
     if(length(IP) == 1){
-      RAW = suppressWarnings({readTIFF(IP, info=F)});rm(IP)
-
+      RAW = suppressWarnings({readImage(IP)});rm(IP)
+      
       #--------------------------------------------------------------------------------------------------------------
       
       if(any(getRange)){
@@ -79,7 +79,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       
       #---
       q = quantile(RAW,probs=seq(0,1,10^(-(adj.step[i]))))
-      R = c(head(q,n=2)[2],tail(q,n=2)[1])
+      R = c(head(q,n=2)[2],tail(q,n=2)[1]);rm(q);gc()
       #---
       LOG = NormalizeIm(log10(RAW+1))
       
@@ -272,18 +272,19 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       if(length(ObjNum) == 0){
         ObjNum = NA ; PCCi = NA ; ICQi = NA ; SOCi = NA ; SOCRi = NA ; SOCGi = NA ; MOCi = NA
       }else{
-        PCCi = as.numeric(unlist(by(PixTable[,c(2,3)],PixTable$Object,FUN=function(x)cor(x[,1],x[,2]))))
-        ICQi = as.numeric(unlist(by(PixTable[,c(2,3)],PixTable$Object,FUN=function(x) ICQ.calc(x))))
-        MOCi = as.numeric(unlist(by(PixTable[,c(2,3)],PixTable$Object,FUN=function(x) MOC.calc(x))))
+        PCCi = as.numeric(unlist(by(PixTable[,c(2,3)],PixTable$Object,function(x)cor(x[,1],x[,2]))))
+        ICQi = as.numeric(unlist(by(PixTable[,c(2,3)],PixTable$Object,function(x) ICQ.calc(x))))
+        MOCi = as.numeric(unlist(by(PixTable[,c(2,3)],PixTable$Object,function(x) MOC.calc(x))))
         
         SOCi = as.numeric(tapply(PixTable$COLOC, PixTable$Object, function(x)length(x[which(x!=0)])/length(x)))
-        SOCRi = as.numeric(unlist(by(PixTable[,c(3,4)],PixTable$Object,FUN=function(x)length(which(x[,2]!=0))/length(which(x[,1]!=0)))))
-        SOCGi = as.numeric(unlist(by(PixTable[,c(2,4)],PixTable$Object,FUN=function(x)length(which(x[,2]!=0))/length(which(x[,1]!=0)))))
+        SOCRi = as.numeric(unlist(by(PixTable[,c(3,4)],PixTable$Object,function(x)length(which(x[,2]!=0))/length(which(x[,1]!=0)))))
+        SOCGi = as.numeric(unlist(by(PixTable[,c(2,4)],PixTable$Object,function(x)length(which(x[,2]!=0))/length(which(x[,1]!=0)))))
       }
       CellTable = data.frame(ObjNum, Plate, Time, Well, Site, PCC = PCCi, ICQ = ICQi,SOC= SOCi, SOCR = SOCRi,SOCG = SOCGi,MOC = MOCi,
                              PCC_FCS = 50*(PCCi + 1), ICQ_FCS = 100*(ICQi + 0.5), SOC_FCS = 100*SOCi, SOCR_FCS = 100*SOCRi, SOCG_FCS = 100*SOCGi, MOC_FCS = 100*MOCi)
       
-      rm(list=c(PCCi,ICQi,MOCi,SOCi,SOCRi,SOCGi));gc()
+      rm(list=c('PCCi','ICQi','MOCi','SOCi','SOCRi','SOCGi','PixTable','ObjNum','COLOC','UNION','pixG','pixM','pixR','pixRM','pixGM'))
+      gc()
       
       ## Features ##
       if(add.features){
@@ -315,7 +316,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
         
         CellFeatures = Reduce(function(x, y) merge(x, y,by = 'CellID', all=TRUE), list(Nuc_Data, Cyto_Data, GDots_Data, RDots_Data))
         CellTable = merge(CellTable, CellFeatures, by.x ='ObjNum', by.y = 'CellID', all.x = T, all.y = F)
-        rm(list=grep(paste0(c('IDs','Data','Dots_Mask','CellFeatures'), collapse = '|'),ls()))
+        rm(list=grep(paste0(c('IDs','Data','Dots_Mask','CellFeatures'), collapse = '|'),ls(),value=T))
         gc()
       }
     }
@@ -368,7 +369,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       }
     }
     
-    rm(list=grep('Mask|List', ls()))
+    rm(list=c(grep('Mask|List', ls(),value=T),'CytoIm'))
     gc()
     
     #Write results in arrays

@@ -18,9 +18,9 @@ ResConfig = function(CellSeg = T){
   }
   Cores = detectCores()
   if(CellSeg){
-    Core2RAM = 2e06 # Assuming one core uses 2GB of RAM
+    Core2RAM = 1.5e06 # Assuming one core uses ~1.5GB of RAM
   }else{
-    Core2RAM = 1e06  # Assuming one core uses 1GB of RAM
+    Core2RAM = 1e06  # Assuming one core uses ~1GB of RAM
   }
   MaxCores = floor(RAM/Core2RAM) 
   
@@ -31,5 +31,4 @@ ResConfig = function(CellSeg = T){
   }
   
   return(UsedCores)
-  
 }
