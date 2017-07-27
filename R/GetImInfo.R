@@ -9,16 +9,9 @@
 getImInfo = function(PlateID, SQL.use = F, SERVER = 'MDCStore',DB, PlateLoc='...', TimeCourse=F){
   
   if(SQL.use){
-    if(missing(DB)){DB = GetMDCInfo(SERVER)}
+    if(missing(DB)){DB = GetMDCInfo(SERVER,Unix.diff=c('//H','/media/h'))}
     Plate = DB[which(DB$PlateID == PlateID),]
     PlateLoc = unique(Plate$PlateLoc)
-    
-    #For maintainer's use only#
-    OS = .Platform$OS.type
-    if(OS == 'unix'){
-      PlateLoc = paste0('/media/', gsub('//', '', PlateLoc))
-      PlateLoc = gsub('Hcs-screen10', 'hcs-screen10', PlateLoc)
-    }
   }
   
   #---------------------------------------------------------------------------------------------------------------------------------------------------

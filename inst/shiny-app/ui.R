@@ -66,6 +66,8 @@ ui = fluidPage(
                                      choices = c("RData", "CSV"),selected = "RData"),
                         radioButtons("ExpSeg", label = "Export segmentation ?",inline = T,
                                      choices = c("YES","NO"),selected = "NO"),
+                        radioButtons("ExpPDF", label = "Export Pixel Profiling ?",inline = T,
+                                     choices = c("YES","NO"),selected = "NO"),
                         conditionalPanel(
                           condition = "input.CellIm == 'YES'",
                           radioButtons("ExpFea", label = "Export cell features ?",inline = T,
@@ -115,7 +117,7 @@ ui = fluidPage(
                         numericInput("UsedCores","CPU threads:",value=parallel::detectCores()),
                         actionButton("CPU.OP", label='Optimize',style='padding:10px; font-size:125%;align:center',width=200)
                       )),
-                    
+               
                conditionalPanel(
                  condition = "input.PLATEMAP == 'YES'",
                  column(3,align='left', offset = 0,

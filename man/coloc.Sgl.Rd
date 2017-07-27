@@ -10,7 +10,7 @@ coloc.Sgl(MyImCl, Plate, Time, Well, Site, Blue = 1, Green = 2, Red = 3,
   w1OFF = 0.1, w2OFF = 0.15, w3OFF = 0.1, Nuc.denoising = T,
   RO.size = 25, Rm1 = c(0, 0.3), Rm2 = c(0, 0.1), Rm3 = c(0, 0.1),
   adj = 1, adj.step1 = 2, adj.step2 = 2, adj.step3 = 2, getCell = F,
-  add.features = F, writeSeg = T, TEST = F, FullIm = F,
+  add.features = F, writeSeg = T, writePDF = F, TEST = F, FullIm = F,
   getRange = c(F, F, F), path = "...")
 }
 \description{

@@ -11,7 +11,7 @@
 #' @export
 
 coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=T,auto2=T, auto3=T, Cyto = 'Compt 2',Nuc.rm = T, Seg.method = 'Fast', TopSize1 = 29, TopSize2 = 29, TopSize3 = 29,  w1OFF = 0.1, w2OFF = 0.15, w3OFF = 0.1, Nuc.denoising = T,
-                     RO.size = 25, Rm1=c(0,0.3), Rm2=c(0,0.1),Rm3=c(0,0.1), adj = 1, adj.step1 = 2, adj.step2 = 2, adj.step3 = 2, getCell = F, add.features = F, writeSeg = T, TEST = F, FullIm = F, getRange = c(F,F,F), path = '...'){  
+                     RO.size = 25, Rm1=c(0,0.3), Rm2=c(0,0.1),Rm3=c(0,0.1), adj = 1, adj.step1 = 2, adj.step2 = 2, adj.step3 = 2, getCell = F, add.features = F, writeSeg = T, writePDF = F, TEST = F, FullIm = F, getRange = c(F,F,F), path = '...'){  
   
   #================================================================================================================
   
@@ -33,8 +33,11 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
   if(nch<2 | nch>3){
     return('Need at least two and at most three channels !')
   }
-  if(nch<3 & getCell==T){
+  if(nch<3 & getCell){
     return('Cannot do cell-by-cell analysis without nuclear stain !')
+  }
+  if(getCell){
+    noNucMask = F
   }
   
   IMList = list()  #Contains original images
@@ -63,8 +66,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
   for(i in 1:nch){
     IP = as.character(Im$MyIm[which(Im$Channel==paste0('w',i))])
     if(length(IP) == 1){
-      RAW = suppressWarnings({readTIFF(IP, info=F)});rm(IP)
-
+      RAW = suppressWarnings({readImage(IP)});rm(IP)
       #--------------------------------------------------------------------------------------------------------------
       
       if(any(getRange)){
@@ -79,19 +81,25 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       
       #---
       q = quantile(RAW,probs=seq(0,1,10^(-(adj.step[i]))))
-      R = c(head(q,n=2)[2],tail(q,n=2)[1])
+      R = c(head(q,n=2)[2],tail(q,n=2)[1]);rm(q);gc()
       #---
-      LOG = NormalizeIm(log10(RAW+1))
+      if(all(RAW == 0)){
+        LOG = RAW
+      }else{
+        LOG = NormalizeIm(log10(RAW+1))
+      }
       
       #-------------------------------------------------
       IMList = c(IMList,list(RAW))
-      RAW = NormalizeIm(RAW,inputRange=R)
+      if(!all(RAW == 0)){
+        RAW = NormalizeIm(RAW,inputRange=R)
+      }
       #
       P = RAW-gblur(RAW,50)
       P[which(P<0)] = 0
       P = NormalizeIm(P)
       
-      PList = c(PList,list(P))
+      PList = c(PList,list(P));rm(P);gc()
       
       ##-------------------------------------------------
       #Here we get LOGs and cytosol Mask
@@ -116,9 +124,8 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
         CMask = CytoIm>(adj*otsu(CytoIm))
       }
       
-      if((Nuc.rm==T|getCell==T) & i==Blue){
-        
-        if(getCell==T){
+      if((Nuc.rm|getCell) & i==Blue){
+        if(getCell){
           Nuc = RAW
           if(Nuc.denoising){
             Nuc = ReconsOpening(Nuc, makeBrush(RO.size,'disc'))
@@ -131,6 +138,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
           }else if(Seg.method == 'Robust'){
             NMask = watershed(distmap(opening(thresh(Nuc,w=50,h=50, offset = w1OFF),makeBrush(15,'disc'))))
           }
+          rm(list=c('Nuc','seed'));gc()
         }
       }
       
@@ -139,8 +147,11 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       
       TOP = whiteTopHat(LOG,makeBrush(TopSize[i],'disc'))
       TOP[which(TOP<0)]=0
-      TOP = NormalizeIm(TOP)
       
+      if(!all(RAW == 0)){
+        TOP = NormalizeIm(TOP)
+      }
+
       if(autoSeg[i]){
         C = TOP>(otsu(TOP))
       }else{
@@ -165,7 +176,12 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     if(getCell){
       OMask = propagate(CMask,NMask,mask = ceiling((CMask+NMask)/2))
       rm(T1)
+      
+      if(all(OMask == 0)){
+        getCell = F ; Nuc.rm = F ; noNucMask = T
+      }
     }
+
   }
   #
   for(i in 1:nch){
@@ -221,16 +237,15 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       testR = paintObjects(OMask,paintObjects(MList[[Red]],rgbImage(red=(NormalizeIm(IMList[[Red]],inputRange=Rm3))),col = 'green'),col='yellow')
       testG = paintObjects(OMask,paintObjects(MList[[Green]],rgbImage(green=(NormalizeIm(IMList[[Green]],inputRange=Rm2))), col = 'red'),col = 'yellow')
       
-      if(nch>2){
-        if(Nuc.rm){
-          testB = paintObjects(NMask,rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
-          testRGB = paintObjects(NMask,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
-                                                                                 col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T)
-        }else{
-          testB = rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1)))
-          testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
-                                                              col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
-        }
+      
+      if(Nuc.rm){
+        testB = paintObjects(NMask,rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
+        testRGB = paintObjects(NMask,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+                                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T)
+      }else{
+        testB = rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1)))
+        testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+                                                            col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
       }
     }else{
       
@@ -238,7 +253,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       testG = paintObjects(CMask,paintObjects(MList[[Green]],rgbImage(green=(NormalizeIm(IMList[[Green]],inputRange=Rm2))), col = 'red'),col = 'yellow')
       
       if(nch>2){
-        if(Nuc.rm==T){
+        if(Nuc.rm){
           testB = paintObjects(T1,rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
           testRGB = paintObjects(T1,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T)
@@ -247,6 +262,10 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
           testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
         }
+      }else{
+        testB = rgbImage(blue = matrix(0,nrow=dim(MList[[Green]])[1],ncol=dim(MList[[Green]])[2]))
+        testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+                                                            col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
       }
     }
     return(list(testB, testG, testR, testRGB, Rm1, Rm2, Rm3, PCC, SOC))
@@ -264,7 +283,6 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     if(getCell){
       
       PixTable = data.frame(Object = pixM[which(pixM!=0)], C2=pixGM, C3 = pixRM, COLOC = as.numeric(COLOC)[which(pixM!=0)])
-      
       ObjNum = as.numeric(tapply(PixTable$Object, PixTable$Object, function(x)unique(x)))
       
       if(length(ObjNum) == 0){
@@ -278,8 +296,11 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
         SOCRi = as.numeric(unlist(by(PixTable[,c(3,4)],PixTable$Object,FUN=function(x)length(which(x[,2]!=0))/length(which(x[,1]!=0)))))
         SOCGi = as.numeric(unlist(by(PixTable[,c(2,4)],PixTable$Object,FUN=function(x)length(which(x[,2]!=0))/length(which(x[,1]!=0)))))
       }
-      CellTable = data.frame(ObjNum, Plate, Time, Well, Site, PCC = PCCi, ICQ = ICQi,SOC= SOCi, SOCR = SOCRi,SOCG = SOCGi,MOC = MOCi,
+      CellTable = data.frame(ObjNum, PlateID = Plate,Time = Time,WellID = Well,SiteID = Site,PCC = PCCi, ICQ = ICQi,SOC= SOCi, SOCR = SOCRi,SOCG = SOCGi,MOC = MOCi,
                              PCC_FCS = 50*(PCCi + 1), ICQ_FCS = 100*(ICQi + 0.5), SOC_FCS = 100*SOCi, SOCR_FCS = 100*SOCRi, SOCG_FCS = 100*SOCGi, MOC_FCS = 100*MOCi)
+      
+      rm(list=c('PCCi','ICQi','MOCi','SOCi','SOCRi','SOCGi','PixTable','ObjNum','COLOC','UNION','pixG','pixM','pixR','pixRM','pixGM'))
+      gc()
       
       ## Features ##
       if(add.features){
@@ -289,14 +310,9 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
         
         # Cytoplasm
         CytoIDs = sort(unique(as.numeric(OMask[which(OMask!=0)])))
-        if(Cyto =='Compt 1'){
-          Cyto_Data = data.frame(CellID = CytoIDs,data.frame(computeFeatures(x = OMask,ref= IMList[[Green]],methods.ref=,'computeFeatures.basic',methods.noref=c('computeFeatures.moment','computeFeatures.shape'), xname='Cyto',refnames='Cpt1')))
-        }else if(Cyto=='Compt 2'){
-          Cyto_Data = data.frame(CellID = CytoIDs,data.frame(computeFeatures(x = OMask,ref= IMList[[Red]],methods.ref=,'computeFeatures.basic',methods.noref=c('computeFeatures.moment','computeFeatures.shape'), xname='Cyto',refnames='Cpt2')))
-        }else if(Cyto == 'Both'){
-          Cyto_Data = data.frame(CellID = CytoIDs,data.frame(computeFeatures(x = OMask,ref= IMList[[Green]],methods.ref=,'computeFeatures.basic',methods.noref=c('computeFeatures.moment','computeFeatures.shape'), xname='Cyto',refnames='Cpt1')),
-                                 data.frame(computeFeatures(x = OMask,ref= IMList[[Red]],methods.ref=,'computeFeatures.basic',methods.noref=c('computeFeatures.moment','computeFeatures.shape'), xname='Cyto',refnames='Cpt2')))
-        }
+        Cyto_Data = data.frame(CellID = CytoIDs,data.frame(computeFeatures(x = OMask,ref= IMList[[Green]],methods.ref=,'computeFeatures.basic',methods.noref=c('computeFeatures.moment','computeFeatures.shape'), xname='Cyto',refnames='Cpt1')),
+                               data.frame(computeFeatures(x = OMask,ref= IMList[[Red]],methods.ref=,'computeFeatures.basic',methods.noref=c('computeFeatures.moment','computeFeatures.shape'), xname='Cyto',refnames='Cpt2')))
+
         
         # Dots
         GDots_Mask = OMask*MList[[Green]]
@@ -311,7 +327,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
         
         CellFeatures = Reduce(function(x, y) merge(x, y,by = 'CellID', all=TRUE), list(Nuc_Data, Cyto_Data, GDots_Data, RDots_Data))
         CellTable = merge(CellTable, CellFeatures, by.x ='ObjNum', by.y = 'CellID', all.x = T, all.y = F)
-        rm(list=grep(paste0(c('IDs','Data','Dots_Mask','CellFeatures'), collapse = '|'),ls()))
+        rm(list=grep(paste0(c('IDs','Data','Dots_Mask','CellFeatures'), collapse = '|'),ls()), value = T)
         gc()
       }
     }
@@ -319,16 +335,33 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     
     #================================================================================================================
     #DATA EXPORT
-    if(!is.na(CellTable$ObjNum)){
-      pdf(paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_PixelProfiling.pdf'),w=10,h=10)
-      smoothScatter(pixGM, pixRM, nrpoints = 0, colramp=MyCols, main=paste(Well,'-',Site, sep=' '),nbin=512,
-                    bandwidth=0.00005,xaxs='i',yaxs='i',xlab='Channel 2',ylab='Channel 3',useRaster=T,xlim=lim,ylim=lim)
-      legend('topright',bty='n',cex=0.6,legend=c(paste('PCC=',round(PCC,2)),paste('ICQ=',round(ICQ,2)),paste('MOC=',round(MOC,2)),paste('SOC=',round(SOC,2))),text.col='red')
-      dev.off()
+    if(writePDF){
+      if(getCell){
+        if(!is.na(CellTable$ObjNum)){
+          try({
+            pdf(paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_PixelProfiling.pdf'),w=10,h=10)
+            smoothScatter(pixGM, pixRM, nrpoints = 0, colramp=MyCols, main=paste(Well,'-',Site, sep=' '),nbin=512,
+                          bandwidth=0.00005,xaxs='i',yaxs='i',xlab='Channel 2',ylab='Channel 3',useRaster=T,xlim=lim,ylim=lim)
+            legend('topright',bty='n',cex=0.6,legend=c(paste('PCC=',round(PCC,2)),paste('ICQ=',round(ICQ,2)),paste('MOC=',round(MOC,2)),paste('SOC=',round(SOC,2))),text.col='red')
+            dev.off()
+          })
+        }
+      }else{
+        if(!is.na(PCC)){
+          try({
+            pdf(paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_PixelProfiling.pdf'),w=10,h=10)
+            smoothScatter(pixGM, pixRM, nrpoints = 0, colramp=MyCols, main=paste(Well,'-',Site, sep=' '),nbin=512,
+                          bandwidth=0.00005,xaxs='i',yaxs='i',xlab='Channel 2',ylab='Channel 3',useRaster=T,xlim=lim,ylim=lim)
+            legend('topright',bty='n',cex=0.6,legend=c(paste('PCC=',round(PCC,2)),paste('ICQ=',round(ICQ,2)),paste('MOC=',round(MOC,2)),paste('SOC=',round(SOC,2))),text.col='red')
+            dev.off()
+          })
+        }
+      }
     }
     
+    
     if(Site==1 & writeSeg){
-      if(getCell==T){
+      if(getCell){
         if(nch>2){ 
           writeImage(paintObjects(NMask,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                                                   col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'))
@@ -337,7 +370,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
                                                                col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'))
         }
       }else{
-        if(nch>2){ 
+        if(nch>2  & !noNucMask){ 
           writeImage(paintObjects(T1,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                                                col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'))
         }else{
@@ -347,15 +380,15 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       }
     }
     
-    rm(list=grep('Mask|List', ls()))
+    rm(list=c(grep('Mask|List', ls(),value=T),'CytoIm'))
     gc()
     
     #Write results in arrays
     if(!getCell){
-      return(c(Plate,Time,Well,Site,PCC,ICQ,SOC,SOCR,SOCG,MOC,
+      return(data.frame(ObjNum=0,PlateID = Plate,Time = Time,WellID = Well,SiteID = Site,PCC = PCC,ICQ = ICQ,SOC = SOC,SOCR = SOCR,SOCG = SOCG,MOC = MOC,
                PCC_FCS = 50*(PCC + 1), ICQ_FCS = 100*(ICQ + 0.5), SOC_FCS = 100*SOC, SOCR_FCS = 100*SOCR, SOCG_FCS = 100*SOCG, MOC_FCS = 100*MOC))
     }else{
-      return(smartbind(CellTable,data.frame(Plate,Time,Well,Site,ObjNum=0,PCC,ICQ,SOC,SOCR,SOCG,MOC,
+      return(smartbind(CellTable,data.frame(ObjNum=0,PlateID = Plate,Time = Time,WellID = Well,SiteID = Site,PCC = PCC,ICQ = ICQ,SOC = SOC,SOCR = SOCR,SOCG = SOCG,MOC = MOC,
                                             PCC_FCS = 50*(PCC + 1), ICQ_FCS = 100*(ICQ + 0.5), SOC_FCS = 100*SOC, SOCR_FCS = 100*SOCR, SOCG_FCS = 100*SOCG, MOC_FCS = 100*MOC)))  
     }
   }
