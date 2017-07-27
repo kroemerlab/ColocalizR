@@ -83,17 +83,12 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       q = quantile(RAW,probs=seq(0,1,10^(-(adj.step[i]))))
       R = c(head(q,n=2)[2],tail(q,n=2)[1]);rm(q);gc()
       #---
-      if(all(RAW == 0)){
-        LOG = RAW
-      }else{
-        LOG = NormalizeIm(log10(RAW+1))
-      }
+      LOG = NormalizeIm(log10(RAW+1))
+
       
       #-------------------------------------------------
       IMList = c(IMList,list(RAW))
-      if(!all(RAW == 0)){
-        RAW = NormalizeIm(RAW,inputRange=R)
-      }
+      RAW = NormalizeIm(RAW,inputRange=R)
       #
       P = RAW-gblur(RAW,50)
       P[which(P<0)] = 0
@@ -147,10 +142,8 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       
       TOP = whiteTopHat(LOG,makeBrush(TopSize[i],'disc'))
       TOP[which(TOP<0)]=0
-      
-      if(!all(RAW == 0)){
-        TOP = NormalizeIm(TOP)
-      }
+      TOP = NormalizeIm(TOP)
+
 
       if(autoSeg[i]){
         C = TOP>(otsu(TOP))
