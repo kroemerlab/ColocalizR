@@ -25,12 +25,13 @@ On Linux, you can either install the program files in the same way than in the t
 
 #### Install R
 ```sh
-grep -q -F "deb http://cran.rstudio.com/bin/linux/ubuntu trustly/" /etc/apt/sources.list || sudo echo "deb http://cran.rstudio.com/bin/linux/ubuntu trustly/" >> /etc/apt/sources.list
+grep -q -F "deb http://cran.rstudio.com/bin/linux/ubuntu *trustly*/" /etc/apt/sources.list || sudo echo "deb http://cran.rstudio.com/bin/linux/ubuntu *trustly*/" >> /etc/apt/sources.list
 gpg --keyserver  keyserver.ubuntu.com --recv-key E084DAB9
 gpg -a --export E084DAB9 | sudo apt-get add -
 sudo apt-get update
 sudo apt-get -y install r-base
 ```
+*trustly* : replace by your own ubuntu distribution
 #### Install RStudio
 ```sh
 wget https://download1.rstudio.org/rstudio-1.0.136-amd64.deb
