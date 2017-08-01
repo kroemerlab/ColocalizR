@@ -30,7 +30,7 @@ gpg --keyserver  keyserver.ubuntu.com --recv-key E084DAB9
 gpg -a --export E084DAB9 | sudo apt-get add -
 sudo apt-get update
 sudo apt-get -y install r-base
-
+```
 **trustly** : replace by your own ubuntu distribution
 #### Install RStudio
 ```sh
