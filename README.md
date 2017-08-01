@@ -31,7 +31,7 @@ gpg -a --export E084DAB9 | sudo apt-get add -
 sudo apt-get update
 sudo apt-get -y install r-base
 ```
-*trustly* : replace by your own ubuntu distribution
+```*trustly*```` : replace by your own ubuntu distribution
 #### Install RStudio
 ```sh
 wget https://download1.rstudio.org/rstudio-1.0.136-amd64.deb
