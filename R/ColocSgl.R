@@ -81,11 +81,10 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       
       #---
       q = quantile(RAW,probs=seq(0,1,10^(-(adj.step[i]))))
-      R = c(head(q,n=2)[2],tail(q,n=2)[1]);rm(q);gc()
+      R = c(head(q,n=2)[2],tail(q,n=2)[1]);rm(q)
       #---
       LOG = NormalizeIm(log10(RAW+1))
 
-      
       #-------------------------------------------------
       IMList = c(IMList,list(RAW))
       RAW = NormalizeIm(RAW,inputRange=R)
@@ -94,7 +93,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       P[which(P<0)] = 0
       P = NormalizeIm(P)
       
-      PList = c(PList,list(P));rm(P);gc()
+      PList = c(PList,list(P));rm(P)
       
       ##-------------------------------------------------
       #Here we get LOGs and cytosol Mask
@@ -133,7 +132,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
           }else if(Seg.method == 'Robust'){
             NMask = watershed(distmap(opening(thresh(Nuc,w=50,h=50, offset = w1OFF),makeBrush(15,'disc'))))
           }
-          rm(list=c('Nuc','seed'));gc()
+          rm(list=c('Nuc','seed'))
         }
       }
       
@@ -155,10 +154,9 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       RAWList = c(RAWList,list(RAW))   
       
       rm(list=c('LOG','TOP','C','RAW'))
-      gc()
     }
   }
-  
+  gc()
   #-------------------------------------------------------
   
   if(nch>2){
@@ -167,7 +165,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     }
     
     if(getCell){
-      OMask = propagate(CMask,NMask,mask = ceiling((CMask+NMask)/2))
+      OMask = propagate(CMask,NMask,mask = CMask|NMask)
       rm(T1)
       
       if(all(OMask == 0)){
@@ -178,15 +176,15 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
   }
   #
   for(i in 1:nch){
-    MList[[i]] = floor((MList[[i]]+CMask)/2)
+    MList[[i]] = MList[[i]] & CMask
     MList[[i]] = round(gblur(MList[[i]],0.6,3)) # Remove lonely pixels
   }
   
   #COLOC
-  COLOC = floor((MList[[Green]]+MList[[Red]])/2)
+  COLOC =  MList[[Green]] & MList[[Red]]
   
   #UNION
-  UNION = ceiling((MList[[Green]]+MList[[Red]])/2) ##OR operation
+  UNION =  MList[[Green]] | MList[[Red]]
   
   if(getCell){
     COLOC = COLOC*OMask
@@ -276,23 +274,22 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     if(getCell){
       
       PixTable = data.frame(Object = pixM[which(pixM!=0)], C2=pixGM, C3 = pixRM, COLOC = as.numeric(COLOC)[which(pixM!=0)])
-      ObjNum = as.numeric(tapply(PixTable$Object, PixTable$Object, function(x)unique(x)))
+      ObjNum = sort(unique(PixTable$Object))
       
       if(length(ObjNum) == 0){
-        ObjNum = NA ; PCCi = NA ; ICQi = NA ; SOCi = NA ; SOCRi = NA ; SOCGi = NA ; MOCi = NA
+        CellTable = data.frame(ObjNum = NA,PCC = NA, ICQ = NA, SOC = NA, SOCR = NA, SOCGi = NA, MOCi = NA)
       }else{
-        PCCi = as.numeric(unlist(by(PixTable[,c(2,3)],PixTable$Object,FUN=function(x)cor(x[,1],x[,2]))))
-        ICQi = as.numeric(unlist(by(PixTable[,c(2,3)],PixTable$Object,FUN=function(x) ICQ.calc(x))))
-        MOCi = as.numeric(unlist(by(PixTable[,c(2,3)],PixTable$Object,FUN=function(x) MOC.calc(x))))
+        CellTable = data.frame(ObjNum,do.call('rbind',by(PixTable[,c('C2','C3','COLOC')],PixTable$Object,function(x)data.frame(PCC=cor(x[,1],x[,2]),
+                                                                                                                               ICQ = ICQ.calc(x[1:2]),
+                                                                                                                               MOC = MOC.calc(x[1:2]),
+                                                                                                                               SOC = length(which(x[,3]!=0))/length(x[,3]),
+                                                                                                                               SOCR = length(which(x[,3]!=0))/length(which(x[,2]!=0)),
+                                                                                                                               SOCG = length(which(x[,3]!=0))/length(which(x[,1]!=0))
+        ))))
         
-        SOCi = as.numeric(tapply(PixTable$COLOC, PixTable$Object, function(x)length(x[which(x!=0)])/length(x)))
-        SOCRi = as.numeric(unlist(by(PixTable[,c(3,4)],PixTable$Object,FUN=function(x)length(which(x[,2]!=0))/length(which(x[,1]!=0)))))
-        SOCGi = as.numeric(unlist(by(PixTable[,c(2,4)],PixTable$Object,FUN=function(x)length(which(x[,2]!=0))/length(which(x[,1]!=0)))))
       }
-      CellTable = data.frame(ObjNum, PlateID = Plate,Time = Time,WellID = Well,SiteID = Site,PCC = PCCi, ICQ = ICQi,SOC= SOCi, SOCR = SOCRi,SOCG = SOCGi,MOC = MOCi,
-                             PCC_FCS = 50*(PCCi + 1), ICQ_FCS = 100*(ICQi + 0.5), SOC_FCS = 100*SOCi, SOCR_FCS = 100*SOCRi, SOCG_FCS = 100*SOCGi, MOC_FCS = 100*MOCi)
-      
-      rm(list=c('PCCi','ICQi','MOCi','SOCi','SOCRi','SOCGi','PixTable','ObjNum','COLOC','UNION','pixG','pixM','pixR','pixRM','pixGM'))
+      CellTable = data.frame(PlateID = Plate,Time = Time,WellID = Well,SiteID = Site, CellTable)
+      rm(list=c('PixTable','ObjNum','COLOC','UNION','pixG','pixM','pixR','pixRM','pixGM'))
       gc()
       
       ## Features ##
@@ -378,11 +375,9 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     
     #Write results in arrays
     if(!getCell){
-      return(data.frame(ObjNum=0,PlateID = Plate,Time = Time,WellID = Well,SiteID = Site,PCC = PCC,ICQ = ICQ,SOC = SOC,SOCR = SOCR,SOCG = SOCG,MOC = MOC,
-               PCC_FCS = 50*(PCC + 1), ICQ_FCS = 100*(ICQ + 0.5), SOC_FCS = 100*SOC, SOCR_FCS = 100*SOCR, SOCG_FCS = 100*SOCG, MOC_FCS = 100*MOC))
+      return(data.frame(ObjNum=0,PlateID = Plate,Time = Time,WellID = Well,SiteID = Site,PCC = PCC,ICQ = ICQ,SOC = SOC,SOCR = SOCR,SOCG = SOCG,MOC = MOC))
     }else{
-      return(smartbind(CellTable,data.frame(ObjNum=0,PlateID = Plate,Time = Time,WellID = Well,SiteID = Site,PCC = PCC,ICQ = ICQ,SOC = SOC,SOCR = SOCR,SOCG = SOCG,MOC = MOC,
-                                            PCC_FCS = 50*(PCC + 1), ICQ_FCS = 100*(ICQ + 0.5), SOC_FCS = 100*SOC, SOCR_FCS = 100*SOCR, SOCG_FCS = 100*SOCG, MOC_FCS = 100*MOC)))  
+      return(smartbind(CellTable,data.frame(ObjNum=0,PlateID = Plate,Time = Time,WellID = Well,SiteID = Site,PCC = PCC,ICQ = ICQ,SOC = SOC,SOCR = SOCR,SOCG = SOCG,MOC = MOC)))  
     }
   }
 }

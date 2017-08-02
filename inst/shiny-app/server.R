@@ -334,16 +334,24 @@ server = function(input, output, session) {
         save(Summary, file = paste0(path.FOR,'/Results.RData'))
       }
       
-      if(getCell.FOR==T & as.FCS.FOR==T){
+      if(getCell.FOR & as.FCS.FOR){
         clusterEvalQ(cl, library("flowCore"))
         parLapply(cl = cl, unique(Summary$GlobalID), function(x){
-          WSummary = Summary[which(Summary$GlobalID == x),]
-          FlowFrame = new("flowFrame",exprs=as.matrix(WSummary[-which(WSummary$ObjNum==0),c(12:ncol(WSummary))]))
+          WSummary = Summary[which(Summary$GlobalID==x),]
+          WSummary$PCC=(WSummary$PCC+1)*50; WSummary$ICQ=(WSummary$ICQ+0.5)*100;
+          WSummary$MOC=WSummary$MOC*100 ;WSummary$SOC=WSummary$SOC*100;
+          WSummary$SOCR=WSummary$SOCR*100;WSummary$SOCG=WSummary$SOCG*100;
+          FlowFrame = new("flowFrame",exprs=as.matrix(WSummary[-which(WSummary$ObjNum==0),
+                                                               setdiff(colnames(WSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID"))]))
           write.FCS(FlowFrame, paste(path.FOR, paste(gsub('_','/', x), 'fcs', sep='.'), sep = '/'))
         })
         parLapply(cl = cl, unique(Summary$PlateID), function(x){
-          PSummary = Summary[which(Summary$PlateID == x),]
-          FlowFrame = new("flowFrame",exprs=as.matrix(PSummary[-which(PSummary$ObjNum==0),c(12:ncol(PSummary))]))
+          PSummary = Summary[which(Summary$PlateID==x),]
+          PSummary$PCC=(PSummary$PCC+1)*50; PSummary$ICQ=(PSummary$ICQ+0.5)*100;
+          PSummary$MOC=PSummary$MOC*100 ;PSummary$SOC=PSummary$SOC*100;
+          PSummary$SOCR=PSummary$SOCR*100;PSummary$SOCG=PSummary$SOCG*100;
+          FlowFrame = new("flowFrame",exprs=as.matrix(PSummary[-which(PSummary$ObjNum==0),
+                                                               setdiff(colnames(PSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID"))]))
           write.FCS(FlowFrame, paste(path.FOR, paste0(x, '/GlobalFCS.fcs'), sep = '/'))
         })
       }
