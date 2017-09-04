@@ -160,7 +160,9 @@ ui = fluidPage(
                       br(),
                       imageOutput("LookUp1",height=600, width=600, inline=F),
                       br(),
-                      sliderInput("zoom1", "Zoom", min=1, max=5, step=0.5, value=1)
+                      #sliderInput("zoom1", "Zoom", min=1, max=5, step=0.5, value=1)
+                      radioButtons("zoom1", label = "Zoom %",inline = T,
+                                   choices = c(100,200,400,800),selected = 100)
                ))
     ),
     
@@ -189,7 +191,9 @@ ui = fluidPage(
                       br(),
                       imageOutput("LookUp2",height=600, width=600, inline=F),
                       br(),
-                      sliderInput("zoom2", "Zoom", min=1, max=5, step=0.5, value=1)
+                      #sliderInput("zoom2", "Zoom", min=1, max=5, step=0.5, value=1)
+                      radioButtons("zoom2", label = "Zoom %",inline = T,
+                                   choices = c(100,200,400,800),selected = 100)
                ))
     ),
     
@@ -218,7 +222,9 @@ ui = fluidPage(
                       br(),
                       imageOutput("LookUp3",height=600, width=600, inline=F),
                       br(),
-                      sliderInput("zoom3", "Zoom", min=1, max=5, step=0.5, value=1)
+                      #sliderInput("zoom3", "Zoom", min=1, max=5, step=0.5, value=1)
+                      radioButtons("zoom3", label = "Zoom %",inline = T,
+                                   choices = c(100,200,400,800),selected = 100)
                ))       
     ),
     
@@ -238,7 +244,9 @@ ui = fluidPage(
                       br(),
                       imageOutput("LookUp4",height=600, width=600, inline=F),
                       br(),
-                      sliderInput("zoom4", "Zoom",  min=1, max=5, step=0.5, value=1)
+                      #sliderInput("zoom4", "Zoom",  min=1, max=5, step=0.5, value=1)
+                      radioButtons("zoom4", label = "Zoom %",inline = T,
+                                   choices = c(100,200,400,800),selected = 100)
                )
              )
     )

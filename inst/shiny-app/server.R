@@ -222,16 +222,17 @@ server = function(input, output, session) {
     }
   })
   
-  Zoom = reactiveValues(zoom_value = 1)
-  observeEvent((input$zoom1 | input$zoom2 | input$zoom3 | input$zoom4),{
-    Inputs = c(input$zoom1,input$zoom2,input$zoom3,input$zoom4)
-    if(any(Inputs != Zoom$zoom_value)){
-      Zoom$zoom_value = unique(Inputs[which(Inputs != Zoom$zoom_value)])
-      invisible(sapply(1:4,function(x)eval(parse(text=sprintf("updateSliderInput(session, 'zoom%d', value = Zoom$zoom_value,
-                        min=1, max=5, step=0.5)",x)))))
+  Z = reactiveValues(zoom='100%')
+  observe({
+    zooms = c(input$zoom1,input$zoom2,input$zoom3,input$zoom4)
+    if(length(unique(zooms))==1){
+      Z$zoom = unique(zooms)
+    }else{
+      Z$zoom = zooms[which(sapply(zooms,function(x)length(which(x==zooms)))==1)]
     }
+    invisible(sapply(1:4,function(x)eval(parse(text=sprintf("updateRadioButtons(session,'zoom%d',selected=Z$zoom)",x)))))
   })
-  
+
   #==========================================================================================================================================================
   ## Image display for testing channel parameters
   
@@ -244,10 +245,12 @@ server = function(input, output, session) {
     input$Test1},{
       withProgress({
         setProgress(message='Segmenting images...')
+        isolate({
         TempI = coloc.Sgl(MyImCl = ConInf$Welldat, Plate = input$SampPlate1, Time = input$SampTime1, Well= input$SampWell1, Site = input$SampSite1, Blue = as.numeric(input$BlueChannel), Green = as.numeric(input$GreenChannel), Red = as.numeric(input$RedChannel), auto2 = (input$auto2 == 'YES'), 
                           auto3 = (input$auto3 == 'YES'), Cyto = input$Cyto, Nuc.rm = (input$Nucrm == 'YES'), TopSize2 = input$TopSize2, TopSize3 = input$TopSize3,  w1OFF = input$w1OFF,w2OFF = input$w2OFF,w3OFF = input$w3OFF, Nuc.denoising = (input$Denoising=='YES'), RO.size = input$RO.size,  
                           FullIm = T, TEST=T, getCell = (input$CellIm == 'YES'), adj.step1 = input$adj.step1, adj.step2 = input$adj.step2, adj.step3 = input$adj.step3, adj = Adj$adj_value, getRange = c((input$AutoAd1=='YES'),(input$AutoAd2=='YES'),(input$AutoAd3=='YES')), 
                           Rm1 = input$Rm1, Rm2 = input$Rm2, Rm3= input$Rm3)
+        })
         ThumbIm$I = TempI[c(1:4,8:9)]
         AdjIm$Auto1 = TempI[[5]];AdjIm$Auto2 = TempI[[6]];AdjIm$Auto3 = TempI[[7]]
         #
@@ -257,14 +260,13 @@ server = function(input, output, session) {
   #
   observe({
     Center = dim(ThumbIm$I[[1]])/2
-    xEx1 = ((Center[1]*(1-(1/Zoom$zoom_value))):(Center[1]*(1+(1/Zoom$zoom_value))))
-    yEx1 = ((Center[2]*(1-(1/Zoom$zoom_value))):(Center[2]*(1+(1/Zoom$zoom_value))))
-    
-    isolate({
-      sapply(1:4,function(x)eval(parse(text=sprintf("output$LookUp%d <-renderPlot({
+    Z = floor(Center*100/as.numeric(Z$zoom))
+    xEx1 = ((Center[1]-Z[1]):(Center[1]+Z[1]))
+    yEx1 = ((Center[2]-Z[2]):(Center[2]+Z[2]))
+
+    sapply(1:4,function(x)eval(parse(text=sprintf("output$LookUp%d <-renderPlot({
           display((ThumbIm$I[[%d]])[xEx1,yEx1,], method='raster')
         })",x,x))))
-    })
   })
   
   ## Give an idea of PCC/SOC
@@ -275,7 +277,6 @@ server = function(input, output, session) {
   #===============================================================================================================================================================
   ## Launch Image Analysis
   observeEvent(input$launcher,{
-    
     #Parameters to be exported in foreach 
     isolate({
       MyImCl.FOR = ConInf$Welldat
@@ -302,9 +303,9 @@ server = function(input, output, session) {
       
       #------------------------------------------------------------
       setProgress(message = "Creating clusters...")
-      cl <- makeSOCKcluster(input$UsedCores)
+      isolate({cl = makeSOCKcluster(input$UsedCores)})
       registerDoSNOW(cl)
-      opts <- list(progress=function(n)(setProgress(value=n)))
+      opts = list(progress=function(n)(setProgress(value=n)))
       #------------------------------------------------------------
       setProgress(value=1, message = "Treating images")
       t1=Sys.time()
@@ -334,23 +335,30 @@ server = function(input, output, session) {
         save(Summary, file = paste0(path.FOR,'/Results.RData'))
       }
       
-      if(getCell.FOR==T & as.FCS.FOR==T){
+      if(getCell.FOR & as.FCS.FOR){
         clusterEvalQ(cl, library("flowCore"))
         parLapply(cl = cl, unique(Summary$GlobalID), function(x){
-          WSummary = Summary[which(Summary$GlobalID == x),]
-          FlowFrame = new("flowFrame",exprs=as.matrix(WSummary[-which(WSummary$ObjNum==0),c(12:ncol(WSummary))]))
+          WSummary = Summary[which(Summary$GlobalID==x),]
+          WSummary$PCC=(WSummary$PCC+1)*50; WSummary$ICQ=(WSummary$ICQ+0.5)*100;
+          WSummary$MOC=WSummary$MOC*100 ;WSummary$SOC=WSummary$SOC*100;
+          WSummary$SOCR=WSummary$SOCR*100;WSummary$SOCG=WSummary$SOCG*100;
+          FlowFrame = new("flowFrame",exprs=as.matrix(WSummary[-which(WSummary$ObjNum==0),
+                                                               setdiff(colnames(WSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID"))]))
           write.FCS(FlowFrame, paste(path.FOR, paste(gsub('_','/', x), 'fcs', sep='.'), sep = '/'))
         })
         parLapply(cl = cl, unique(Summary$PlateID), function(x){
-          PSummary = Summary[which(Summary$PlateID == x),]
-          FlowFrame = new("flowFrame",exprs=as.matrix(PSummary[-which(PSummary$ObjNum==0),c(12:ncol(PSummary))]))
+          PSummary = Summary[which(Summary$PlateID==x),]
+          PSummary$PCC=(PSummary$PCC+1)*50; PSummary$ICQ=(PSummary$ICQ+0.5)*100;
+          PSummary$MOC=PSummary$MOC*100 ;PSummary$SOC=PSummary$SOC*100;
+          PSummary$SOCR=PSummary$SOCR*100;PSummary$SOCG=PSummary$SOCG*100;
+          FlowFrame = new("flowFrame",exprs=as.matrix(PSummary[-which(PSummary$ObjNum==0),
+                                                               setdiff(colnames(PSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID"))]))
           write.FCS(FlowFrame, paste(path.FOR, paste0(x, '/GlobalFCS.fcs'), sep = '/'))
         })
       }
       
       stopCluster(cl);rm(cl)
       setProgress(message = "End of treatments!")
-      
       #---------------------------------------------------------
       
       t2=Sys.time()
