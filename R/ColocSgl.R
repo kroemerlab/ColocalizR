@@ -119,8 +119,8 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       }
       
       if((Nuc.rm|getCell) & i==Blue){
+        Nuc = RAW
         if(getCell){
-          Nuc = RAW
           if(Nuc.denoising){
             Nuc = ReconsOpening(Nuc, makeBrush(RO.size,'disc'))
           }
