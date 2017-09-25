@@ -120,7 +120,6 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       
       if((Nuc.rm|getCell) & i==Blue){
         Nuc = RAW
-        if(getCell){
           if(Nuc.denoising){
             Nuc = ReconsOpening(Nuc, makeBrush(RO.size,'disc'))
           }
@@ -133,7 +132,6 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
             NMask = watershed(distmap(opening(thresh(Nuc,w=50,h=50, offset = w1OFF),makeBrush(15,'disc'))))
           }
           rm(list=c('Nuc','seed'))
-        }
       }
       
       ##-------------------------------------------------
