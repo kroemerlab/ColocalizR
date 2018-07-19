@@ -1,10 +1,11 @@
 library(shiny)
-library(MiXR)
+library(MetaxpR)
 
 library(gtools)
 library(rChoiceDialogs)
 library(tiff)
 library(EBImage)
+library(MorphR)
 library(RODBC)
 
 library(doParallel)
@@ -40,7 +41,7 @@ server = function(input, output, session) {
                          multiple = F, selected=tail(names(odbcDataSources(type='system')),n=1))
         })
         observeEvent(input$SERVER,{
-          ConInf$DB = GetMDCInfo(input$SERVER,Unix.diff = c('//H','/media/h')) #Unix.diff can be replaced with your own config
+          ConInf$DB = GetMDCInfo(input$SERVER,Unix.diff = c('//H','/media/H')) #Unix.diff can be replaced with your own config
           output$PlateIDs = renderUI({
             Plates = unique(as.numeric((ConInf$DB)$PlateID))
             selectizeInput("SPlates","Plate selection :", choices = Plates[order(Plates, decreasing = T)], multiple = input$MulPlates=='YES', selected=Plates[length(Plates[!is.na(Plates)])])
@@ -96,7 +97,7 @@ server = function(input, output, session) {
         ncores=length(as.numeric(input$SPlates))
       }
       cl = parallel::makeCluster(ncores)
-      invisible(clusterEvalQ(cl, c(library(MiXR),library(gtools),library(reshape2),library(ColocalizR),library(doParallel))))
+      invisible(clusterEvalQ(cl, c(library(MetaxpR),library(gtools),library(reshape2),library(ColocalizR),library(doParallel))))
       TimeCourse = (input$TimeCourse == 'YES')
       PlateIDs = as.numeric(input$SPlates)
       
@@ -310,7 +311,7 @@ server = function(input, output, session) {
       setProgress(value=1, message = "Treating images")
       t1=Sys.time()
       
-      Summary = foreach(ID = UniID,j=icount(), .packages = c("EBImage","tiff","gtools","ColocalizR","shiny"),.inorder=FALSE,
+      Summary = foreach(ID = UniID,j=icount(), .packages = c("EBImage","tiff","gtools","ColocalizR","shiny","MorphR","MetaxpR"),.inorder=FALSE,
                         .combine = 'smartbind',.options.snow=opts) %dopar% {
                           IDs = unlist(strsplit(ID,split='_'));names(IDs) = c('P', 'TI', 'W', 'S')
                           try({

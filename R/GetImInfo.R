@@ -1,7 +1,7 @@
 #' Get Information about images
 #'
 #' @keywords internal
-#' @import MiXR
+#' @import MetaxpR
 #' @import reshape2
 #' @import gtools
 #' @export

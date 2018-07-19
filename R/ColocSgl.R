@@ -5,8 +5,9 @@
 #' @import EBImage
 #' @import tiff
 #' @import gtools
-#' @import MiXR
+#' @import MetaxpR
 #' @import doParallel
+#' @import MorphR
 
 #' @export
 
@@ -83,15 +84,15 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       q = quantile(RAW,probs=seq(0,1,10^(-(adj.step[i]))))
       R = c(head(q,n=2)[2],tail(q,n=2)[1]);rm(q)
       #---
-      LOG = NormalizeIm(log10(RAW+1))
+      LOG = MetaxpR::Normalize(log10(RAW+1))
 
       #-------------------------------------------------
       IMList = c(IMList,list(RAW))
-      RAW = NormalizeIm(RAW,inputRange=R)
+      RAW = MetaxpR::Normalize(RAW,inputRange=R)
       #
       P = RAW-gblur(RAW,50)
       P[which(P<0)] = 0
-      P = NormalizeIm(P)
+      P = MetaxpR::Normalize(P)
       
       PList = c(PList,list(P));rm(P)
       
@@ -110,7 +111,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
           LOGR = LOG
         }
         if(i == 3){
-          CytoIm = (medianFilter(NormalizeIm((LOGG+LOGR)/2),10))
+          CytoIm = (medianFilter(MetaxpR::Normalize((LOGG+LOGR)/2),10))
           rm(list = c('LOGR','LOGG'))
         }
       }
@@ -121,7 +122,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       if((Nuc.rm|getCell) & i==Blue){
         Nuc = RAW
           if(Nuc.denoising){
-            Nuc = ReconsOpening(Nuc, makeBrush(RO.size,'disc'))
+            Nuc = MorphR::MorphRecons(f = geodilate,reference = Nuc,element = makeBrush(RO.size,'disc'),oc='open')
           }
           T1 = opening(closing(fillHull(thresh(Nuc,w=50,h=50, offset = w1OFF)),makeBrush(5,'disc')),makeBrush(5,'disc'))
           
@@ -134,12 +135,12 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
           rm(list=c('Nuc','seed'))
       }
       
-      ##-------------------------------------------------
+      ##------------------------------------------------- 
       #Let's get uncleaned masks
       
       TOP = whiteTopHat(LOG,makeBrush(TopSize[i],'disc'))
       TOP[which(TOP<0)]=0
-      TOP = NormalizeIm(TOP)
+      TOP = MetaxpR::Normalize(TOP)
 
 
       if(autoSeg[i]){
@@ -223,37 +224,37 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     
     if(getCell){
       
-      testR = paintObjects(OMask,paintObjects(MList[[Red]],rgbImage(red=(NormalizeIm(IMList[[Red]],inputRange=Rm3))),col = 'green'),col='yellow')
-      testG = paintObjects(OMask,paintObjects(MList[[Green]],rgbImage(green=(NormalizeIm(IMList[[Green]],inputRange=Rm2))), col = 'red'),col = 'yellow')
+      testR = paintObjects(OMask,paintObjects(MList[[Red]],rgbImage(red=(MetaxpR::Normalize(IMList[[Red]],inputRange=Rm3))),col = 'green'),col='yellow')
+      testG = paintObjects(OMask,paintObjects(MList[[Green]],rgbImage(green=(MetaxpR::Normalize(IMList[[Green]],inputRange=Rm2))), col = 'red'),col = 'yellow')
       
       
       if(Nuc.rm){
-        testB = paintObjects(NMask,rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
-        testRGB = paintObjects(NMask,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+        testB = paintObjects(NMask,rgbImage(blue=(MetaxpR::Normalize(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
+        testRGB = paintObjects(NMask,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(blue = MetaxpR::Normalize(IMList[[Blue]],inputRange=Rm1), green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                                                col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T)
       }else{
-        testB = rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1)))
-        testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+        testB = rgbImage(blue=(MetaxpR::Normalize(IMList[[Blue]],inputRange=Rm1)))
+        testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                             col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
       }
     }else{
       
-      testR = paintObjects(CMask,paintObjects(MList[[Red]],rgbImage(red=(NormalizeIm(IMList[[Red]],inputRange=Rm3))),col = 'green'),col='yellow')
-      testG = paintObjects(CMask,paintObjects(MList[[Green]],rgbImage(green=(NormalizeIm(IMList[[Green]],inputRange=Rm2))), col = 'red'),col = 'yellow')
+      testR = paintObjects(CMask,paintObjects(MList[[Red]],rgbImage(red=(MetaxpR::Normalize(IMList[[Red]],inputRange=Rm3))),col = 'green'),col='yellow')
+      testG = paintObjects(CMask,paintObjects(MList[[Green]],rgbImage(green=(MetaxpR::Normalize(IMList[[Green]],inputRange=Rm2))), col = 'red'),col = 'yellow')
       
       if(nch>2){
         if(Nuc.rm){
-          testB = paintObjects(T1,rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
-          testRGB = paintObjects(T1,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+          testB = paintObjects(T1,rgbImage(blue=(MetaxpR::Normalize(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
+          testRGB = paintObjects(T1,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(blue = MetaxpR::Normalize(IMList[[Blue]],inputRange=Rm1), green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T)
         }else{
-          testB = rgbImage(blue=(NormalizeIm(IMList[[Blue]],inputRange=Rm1)))
-          testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+          testB = rgbImage(blue=(MetaxpR::Normalize(IMList[[Blue]],inputRange=Rm1)))
+          testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
         }
       }else{
         testB = rgbImage(blue = matrix(0,nrow=dim(MList[[Green]])[1],ncol=dim(MList[[Green]])[2]))
-        testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+        testRGB = paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                             col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
       }
     }
@@ -351,18 +352,18 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     if(Site==1 & writeSeg){
       if(getCell){
         if(nch>2){ 
-          writeImage(paintObjects(NMask,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+          writeImage(paintObjects(NMask,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(blue = MetaxpR::Normalize(IMList[[Blue]],inputRange=Rm1), green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                                                   col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'))
         }else{
-          writeImage(paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+          writeImage(paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                                col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'))
         }
       }else{
         if(nch>2  & !noNucMask){ 
-          writeImage(paintObjects(T1,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(blue = NormalizeIm(IMList[[Blue]],inputRange=Rm1), green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+          writeImage(paintObjects(T1,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(blue = MetaxpR::Normalize(IMList[[Blue]],inputRange=Rm1), green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                                                col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'))
         }else{
-          writeImage(paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(green=NormalizeIm(IMList[[Green]], inputRange=Rm2),red =NormalizeIm(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
+          writeImage(paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
                                                                col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'))
         }
       }
