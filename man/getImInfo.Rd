@@ -4,8 +4,8 @@
 \alias{getImInfo}
 \title{Get Information about images}
 \usage{
-getImInfo(PlateID, SQL.use = F, SERVER = "MDCStore", DB, PlateLoc = "...",
-  TimeCourse = F)
+getImInfo(PlateID, SQL.use = F, SERVER = "MDCStore", DB,
+  PlateLoc = "...", TimeCourse = F)
 }
 \description{
 Get Information about images

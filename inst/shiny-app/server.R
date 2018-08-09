@@ -233,7 +233,7 @@ server = function(input, output, session) {
     }
     invisible(sapply(1:4,function(x)eval(parse(text=sprintf("updateRadioButtons(session,'zoom%d',selected=Z$zoom)",x)))))
   })
-
+  
   #==========================================================================================================================================================
   ## Image display for testing channel parameters
   
@@ -247,10 +247,10 @@ server = function(input, output, session) {
       withProgress({
         setProgress(message='Segmenting images...')
         isolate({
-        TempI = coloc.Sgl(MyImCl = ConInf$Welldat, Plate = input$SampPlate1, Time = input$SampTime1, Well= input$SampWell1, Site = input$SampSite1, Blue = as.numeric(input$BlueChannel), Green = as.numeric(input$GreenChannel), Red = as.numeric(input$RedChannel), auto2 = (input$auto2 == 'YES'), 
-                          auto3 = (input$auto3 == 'YES'), Cyto = input$Cyto, Nuc.rm = (input$Nucrm == 'YES'), TopSize2 = input$TopSize2, TopSize3 = input$TopSize3,  w1OFF = input$w1OFF,w2OFF = input$w2OFF,w3OFF = input$w3OFF, Nuc.denoising = (input$Denoising=='YES'), RO.size = input$RO.size,  
-                          FullIm = T, TEST=T, getCell = (input$CellIm == 'YES'), adj.step1 = input$adj.step1, adj.step2 = input$adj.step2, adj.step3 = input$adj.step3, adj = Adj$adj_value, getRange = c((input$AutoAd1=='YES'),(input$AutoAd2=='YES'),(input$AutoAd3=='YES')), 
-                          Rm1 = input$Rm1, Rm2 = input$Rm2, Rm3= input$Rm3)
+          TempI = coloc.Sgl(MyImCl = ConInf$Welldat, Plate = input$SampPlate1, Time = input$SampTime1, Well= input$SampWell1, Site = input$SampSite1, Blue = as.numeric(input$BlueChannel), Green = as.numeric(input$GreenChannel), Red = as.numeric(input$RedChannel), auto2 = (input$auto2 == 'YES'), 
+                            auto3 = (input$auto3 == 'YES'), Cyto = input$Cyto, Nuc.rm = (input$Nucrm == 'YES'), TopSize2 = input$TopSize2, TopSize3 = input$TopSize3,  w1OFF = input$w1OFF,w2OFF = input$w2OFF,w3OFF = input$w3OFF, Nuc.denoising = (input$Denoising=='YES'), RO.size = input$RO.size,  
+                            FullIm = T, TEST=T, getCell = (input$CellIm == 'YES'), adj.step1 = input$adj.step1, adj.step2 = input$adj.step2, adj.step3 = input$adj.step3, adj = Adj$adj_value, getRange = c((input$AutoAd1=='YES'),(input$AutoAd2=='YES'),(input$AutoAd3=='YES')), 
+                            Rm1 = input$Rm1, Rm2 = input$Rm2, Rm3= input$Rm3)
         })
         ThumbIm$I = TempI[c(1:4,8:9)]
         AdjIm$Auto1 = TempI[[5]];AdjIm$Auto2 = TempI[[6]];AdjIm$Auto3 = TempI[[7]]
@@ -264,7 +264,7 @@ server = function(input, output, session) {
     Z = floor(Center*100/as.numeric(Z$zoom))
     xEx1 = ((Center[1]-Z[1]):(Center[1]+Z[1]))
     yEx1 = ((Center[2]-Z[2]):(Center[2]+Z[2]))
-
+    
     sapply(1:4,function(x)eval(parse(text=sprintf("output$LookUp%d <-renderPlot({
           display((ThumbIm$I[[%d]])[xEx1,yEx1,], method='raster')
         })",x,x))))
@@ -300,6 +300,7 @@ server = function(input, output, session) {
       # Creating folder architecture
       setProgress(message = "Creating folders...")
       MyImCl.FOR$paths = paste(Plates$resultsloc, MyImCl.FOR$PlateID, MyImCl.FOR$TimePoint, MyImCl.FOR$Well, sep = '/')
+      #MyImCl.FOR$paths = paste(Plates$resultsloc, MyImCl.FOR$PlateID, MyImCl.FOR$TimePoint, sep = '/')
       invisible(sapply(unique(MyImCl.FOR$paths), function(x) dir.create(x, recursive = T)))
       
       #------------------------------------------------------------
@@ -338,24 +339,29 @@ server = function(input, output, session) {
       
       if(getCell.FOR & as.FCS.FOR){
         clusterEvalQ(cl, library("flowCore"))
-        parLapply(cl = cl, unique(Summary$GlobalID), function(x){
-          WSummary = Summary[which(Summary$GlobalID==x),]
-          WSummary$PCC=(WSummary$PCC+1)*50; WSummary$ICQ=(WSummary$ICQ+0.5)*100;
-          WSummary$MOC=WSummary$MOC*100 ;WSummary$SOC=WSummary$SOC*100;
-          WSummary$SOCR=WSummary$SOCR*100;WSummary$SOCG=WSummary$SOCG*100;
-          FlowFrame = new("flowFrame",exprs=as.matrix(WSummary[-which(WSummary$ObjNum==0),
-                                                               setdiff(colnames(WSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID"))]))
-          write.FCS(FlowFrame, paste(path.FOR, paste(gsub('_','/', x), 'fcs', sep='.'), sep = '/'))
-        })
-        parLapply(cl = cl, unique(Summary$PlateID), function(x){
-          PSummary = Summary[which(Summary$PlateID==x),]
-          PSummary$PCC=(PSummary$PCC+1)*50; PSummary$ICQ=(PSummary$ICQ+0.5)*100;
-          PSummary$MOC=PSummary$MOC*100 ;PSummary$SOC=PSummary$SOC*100;
-          PSummary$SOCR=PSummary$SOCR*100;PSummary$SOCG=PSummary$SOCG*100;
-          FlowFrame = new("flowFrame",exprs=as.matrix(PSummary[-which(PSummary$ObjNum==0),
-                                                               setdiff(colnames(PSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID"))]))
-          write.FCS(FlowFrame, paste(path.FOR, paste0(x, '/GlobalFCS.fcs'), sep = '/'))
-        })
+        if(!input$TimeCourse == 'YES'){
+          parLapply(cl = cl, unique(Summary$PlateID), function(x){ #Several plates, one timepoint
+            PSummary = Summary[which(Summary$PlateID==x),]
+            PSummary$PCC=(PSummary$PCC+1)*50; PSummary$ICQ=(PSummary$ICQ+0.5)*100;
+            PSummary$MOC=PSummary$MOC*100 ;PSummary$SOC=PSummary$SOC*100;
+            PSummary$SOCR=PSummary$SOCR*100;PSummary$SOCG=PSummary$SOCG*100;
+            #
+            MX2FCS(dat = PSummary[-which(PSummary$ObjNum==0),],
+                   coi = setdiff(colnames(PSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID")),
+                   export = paste(path.FOR,x,Summary$Time[1],sep = '/'),wlab='WellID')
+          })
+        }else{
+          parLapply(cl = cl,unique(Summary$Time),function(x){ #One plate, several timepoints
+            TSummary = Summary[which(Summary$Time==x),]
+            TSummary$PCC=(TSummary$PCC+1)*50; TSummary$ICQ=(TSummary$ICQ+0.5)*100;
+            TSummary$MOC=TSummary$MOC*100 ;TSummary$SOC=TSummary$SOC*100;
+            TSummary$SOCR=TSummary$SOCR*100;TSummary$SOCG=TSummary$SOCG*100;
+            #
+            MX2FCS(dat = TSummary[-which(TSummary$ObjNum==0),],
+                   coi = setdiff(colnames(TSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID")),
+                   export = paste(path.FOR,Summary$PlateID[1],x,sep = '/'),wlab='WellID')
+          })
+        }
       }
       
       stopCluster(cl);rm(cl)
@@ -373,7 +379,6 @@ server = function(input, output, session) {
   ## Emergency exit
   
   observeEvent(input$stop,{
-    
     stopApp()
     if(length(grep('mytempdir',ls()))!=0){
       unlink(mytempdir, recursive =T, force=T)
