@@ -32,7 +32,7 @@ sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
 ##### Debian
 ```sh
 grep -q -F "deb http://cran.rstudio.com/bin/linux/debian *DebianVersion*-*RVersion*/" /etc/apt/sources.list || sudo echo "deb http://cran.rstudio.com/bin/linux/debian *DebianVersion*-*RVersion*/" >> /etc/apt/sources.list
-
+```
 
 ```sh
 sudo apt update
