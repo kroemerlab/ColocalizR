@@ -12,7 +12,7 @@ Click on the previous links to download and install all the required program fil
 
 ### MacOS X
 Install the program files in the same way than in Windows configuration. On Mac, Java is not required but you have to install Xcode either by downloading it via the AppStore or by installing it directly via the terminal.
-The easiest way on on MacOS 10.9 or later is to type in a terminal:
+The easiest way on MacOS 10.9 or later is to type in a terminal:
 ```
 xcode-select --install
 ```
