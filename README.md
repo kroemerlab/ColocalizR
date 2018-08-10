@@ -42,8 +42,8 @@ sudo apt install r-base
 ```
 #### Install RStudio
 ```sh
-wget https://download1.rstudio.org/rstudio-*RStudioRelease*-amd64.deb
-sudo dpkg -i rstudio-*RStudioRelease*-amd64.deb
+wget https://download1.rstudio.org/rstudio-*RStudioVersion*-amd64.deb
+sudo dpkg -i rstudio-*RStudioVersion*-amd64.deb
 sudo apt-get install -f  # install missing dependencies
 ```
 #### Install Java
