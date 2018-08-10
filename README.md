@@ -28,19 +28,18 @@ On Linux, you can either install the program files in the same way than in the t
 ```sh
 grep -q -F "deb http://cran.rstudio.com/bin/linux/ubuntu *UbuntuVersion*/" /etc/apt/sources.list || sudo echo "deb http://cran.rstudio.com/bin/linux/ubuntu *UbuntuVersion*/" >> /etc/apt/sources.list
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
+sudo apt update
+sudo apt install r-base
 ```
 ##### Debian
 ```sh
 grep -q -F "deb http://cran.rstudio.com/bin/linux/debian *DebianVersion*-*RVersion*/" /etc/apt/sources.list || sudo echo "deb http://cran.rstudio.com/bin/linux/debian *DebianVersion*-*RVersion*/" >> /etc/apt/sources.list
 sudo apt install dirmngr
 sudo apt-key adv --keyserver keys.gnupg.net --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF'
-```
-
-#####
-```sh
 sudo apt update
 sudo apt install r-base
 ```
+
 #### Install RStudio
 ```sh
 wget https://download1.rstudio.org/rstudio-*RStudioVersion*-amd64.deb
