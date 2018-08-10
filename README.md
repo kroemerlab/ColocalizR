@@ -20,7 +20,7 @@ It will be asked you to install Command Line Tools, you just have to click on *I
 
 For previous versions of MacOS, you can refer to [these instructions](https://www.moncefbelyamani.com/how-to-install-xcode-homebrew-git-rvm-ruby-on-mac/) to install basic programmation tools on Mac (including Xcode).
 
-### Linux
+### Linux (Ubuntu/Debian)
 On Linux, you can either install the program files in the same way than in the two previous configurations or use command lines to do it. If you choose to do it in command lines, type in a terminal the commands below to correctly install and configure R, RStudio and Java. 
 
 #### Install R
