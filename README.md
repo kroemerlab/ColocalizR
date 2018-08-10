@@ -33,7 +33,7 @@ sudo apt install r-base
 ```
 ##### Debian
 ```sh
-grep -q -F "deb http://cran.rstudio.com/bin/linux/debian *DebianVersion*-*RVersion*/" /etc/apt/sources.list || sudo su -c "echo 'deb http://cran.rstudio.com/bin/linux/debian *DebianVersion*-cran*RVersion*/' >> /etc/apt/sources.list"
+grep -q -F "deb http://cran.rstudio.com/bin/linux/debian *DebianVersion*-cran*RVersionWithoutDot*/" /etc/apt/sources.list || sudo su -c "echo 'deb http://cran.rstudio.com/bin/linux/debian *DebianVersion*-cran*RVersionWithoutDot*/' >> /etc/apt/sources.list"
 sudo apt install dirmngr
 sudo apt-key adv --keyserver keys.gnupg.net --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF'
 sudo apt update
@@ -44,18 +44,18 @@ sudo apt install r-base
 ```sh
 wget https://download1.rstudio.org/rstudio-*RStudioVersion*-amd64.deb
 sudo dpkg -i rstudio-*RStudioVersion*-amd64.deb
-sudo apt-get install -f  # install missing dependencies
+sudo apt install -f  # install missing dependencies
 ```
 #### Install Java
 ```sh
-sudo apt-get install -y default-jre
-sudo apt-get install -y default-jdk
+sudo apt install -y default-jre
+sudo apt install -y default-jdk
 sudo R CMD javareconf
 ```
 
 #### Install dependencies
 ```sh
-sudo apt-get install libcurl4-openssl-dev libssl-dev unixodbc unixodbc-dev libtiff-dev fftw-dev fftw3 fftw3-dev
+sudo apt install libcurl4-openssl-dev libssl-dev unixodbc unixodbc-dev libtiff-dev fftw-dev fftw3 fftw3-dev
 ```
 
 ## R Packages
