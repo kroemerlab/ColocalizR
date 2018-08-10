@@ -53,10 +53,9 @@ sudo apt-get install -y default-jdk
 sudo R CMD javareconf
 ```
 
-If OpenSSL and libcurl libraries are not already installed, run these lines to do it.
+#### Install dependencies
 ```sh
-sudo apt-get install libcurl4-openssl-dev
-sudo apt-get install libssl-dev
+sudo apt-get install libcurl4-openssl-dev libssl-dev unixodbc unixodbc-dev libtiff-dev fftw-dev fftw3 fftw3-dev
 ```
 
 ## R Packages
@@ -68,7 +67,7 @@ install.packages(pkgs=c('rJava','devtools','R6','shiny','tiff','reshape','reshap
 source("http://bioconductor.org/biocLite.R")
 biocLite(pkgs=c('EBImage','flowCore'), ask=F)
 
-devtools::install_github(c("kroemerlab/MetaxpR","kroemerlab/ColocalizR"))
+devtools::install_github(c("kroemerlab/MetaxpR","kroemerlab/MorphR","kroemerlab/ColocalizR"))
 ```
 ## Application
 Once all is installed, you can run this line in the console to download and launch the app. 
