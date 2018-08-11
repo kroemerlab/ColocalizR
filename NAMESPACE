@@ -3,6 +3,7 @@
 export(AutoAdjust)
 export(ICQ.calc)
 export(Launcher)
+export(MOC.calc)
 export(ResConfig)
 export(coloc.Sgl)
 export(geodilate)

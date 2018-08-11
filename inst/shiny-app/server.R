@@ -281,26 +281,26 @@ server = function(input, output, session) {
     #Parameters to be exported in foreach 
     isolate({
       MyImCl.FOR = ConInf$Welldat
-      #--
       UniID = unique(MyImCl.FOR$GlobalID)
       #--
-      Blue.FOR = as.numeric(input$BlueChannel); Green.FOR = as.numeric(input$GreenChannel);Red.FOR = as.numeric(input$RedChannel); auto2.FOR = (input$auto2 == 'YES');auto3.FOR = (input$auto3 == 'YES');
-      Cyto.FOR = input$Cyto;Nuc.rm.FOR = (input$Nucrm == 'YES'); Nucdenoising.FOR = (input$Denoising == 'YES'); ROsize.FOR = input$RO.size ; TopSize2.FOR = input$TopSize2; TopSize3.FOR = input$TopSize3;
-      w1OFF.FOR = input$w1OFF;w2OFF.FOR = input$w2OFF;w3OFF.FOR = input$w3OFF; getCell.FOR = (input$CellIm == 'YES'); as.FCS.FOR = (input$ExportFCS == 'YES'); adj.FOR = Adj$adj_value; 
-      adj.step1.FOR = input$adj.step1; adj.step2.FOR = input$adj.step2; adj.step3.FOR = input$adj.step3; Rm1.FOR = input$Rm1; Rm2.FOR = input$Rm2; Rm3.FOR= input$Rm3; 
-      ExportResults.FOR = input$ExportResults ; ExpSeg.FOR = (input$ExpSeg == 'YES') ; ExpPDF.FOR = (input$ExpPDF == 'YES'); ExpFea.FOR = (input$ExpFea == 'YES') ; path.FOR = as.character(input$savefolder.str)
+      args.coloc = list(MyImCl = MyImCl.FOR, Blue = as.numeric(input$BlueChannel), Green = as.numeric(input$GreenChannel),Red = as.numeric(input$RedChannel), auto2 = (input$auto2 == 'YES'), auto3 = (input$auto3 == 'YES'),
+                        Cyto = input$Cyto, Nuc.rm = (input$Nucrm == 'YES'), TopSize2 = input$TopSize2, TopSize3 = input$TopSize3, Nuc.denoising = (input$Denoising == 'YES'), RO.size =  input$RO.size, TEST=F,getCell = (input$CellIm == 'YES'),
+                        w1OFF = input$w1OFF,w2OFF = input$w2OFF,w3OFF = input$w3OFF, adj = Adj$adj_value, adj.step1 = input$adj.step1, adj.step2 = input$adj.step2, adj.step3 = input$adj.step3, add.features = (input$ExpFea == 'YES'), 
+                        writeSeg = (input$ExpSeg == 'YES'), writePDF = (input$ExpPDF == 'YES'), path = as.character(input$savefolder.str), getRange = rep(TRUE,3))
       #--
+      args.miscs = list(ExportResults=input$ExportResults,as.FCS=(input$ExportFCS == 'YES'))
+      
     })
     #Log files
-    log.sum = cbind.data.frame(NbPlates = length(unique(MyImCl.FOR$PlateID)), NucOffset = w1OFF.FOR, NucInMask = Nuc.rm.FOR, CytoSeg = Cyto.FOR, AdjCyto = adj.FOR, AutoSeg.Cyto1 = auto2.FOR, Cyto1Offset = ifelse(auto2.FOR, NA, w2OFF.FOR), TopHatCyto1 = TopSize2.FOR,
-                               AutoSeg.Cyto2 = auto2.FOR, TopHatCyto2 = TopSize3.FOR,  Cyto2Offset = ifelse(auto3.FOR, NA, w3OFF.FOR),  HistoAdjust.Nuc = adj.step1.FOR, HistoAdjust.Cyto1 = adj.step2.FOR, HistoAdjust.Cyto2 = adj.step3.FOR)
+    log.sum = cbind.data.frame(NbPlates = length(unique(MyImCl.FOR$PlateID)), NucOffset = input$w1OFF, NucInMask =(input$Nucrm == 'YES'), CytoSeg =  input$Cyto, AdjCyto = Adj$adj_value, AutoSeg.Cyto1 = (input$auto2 == 'YES'),
+                               Cyto1Offset = ifelse((input$auto2 == 'YES'), NA, input$w2OFF), TopHatCyto1 = input$TopSize2, AutoSeg.Cyto2 = (input$auto2 == 'YES'), TopHatCyto2 = input$TopSize3,
+                               Cyto2Offset = ifelse((input$auto3 == 'YES'), NA, input$w3OFF), HistoAdjust.Nuc = input$adj.step1, HistoAdjust.Cyto1 = input$adj.step2, HistoAdjust.Cyto2 = input$adj.step3)
     
     withProgress({
       
       # Creating folder architecture
       setProgress(message = "Creating folders...")
       MyImCl.FOR$paths = paste(Plates$resultsloc, MyImCl.FOR$PlateID, MyImCl.FOR$TimePoint, MyImCl.FOR$Well, sep = '/')
-      #MyImCl.FOR$paths = paste(Plates$resultsloc, MyImCl.FOR$PlateID, MyImCl.FOR$TimePoint, sep = '/')
       invisible(sapply(unique(MyImCl.FOR$paths), function(x) dir.create(x, recursive = T)))
       
       #------------------------------------------------------------
@@ -315,12 +315,7 @@ server = function(input, output, session) {
       Summary = foreach(ID = UniID,j=icount(), .packages = c("EBImage","tiff","gtools","ColocalizR","shiny","MorphR","MetaxpR"),.inorder=FALSE,
                         .combine = 'smartbind',.options.snow=opts) %dopar% {
                           IDs = unlist(strsplit(ID,split='_'));names(IDs) = c('P', 'TI', 'W', 'S')
-                          try({
-                            coloc.Sgl(MyImCl = MyImCl.FOR, Plate = IDs['P'], Time = IDs['TI'], Well = IDs['W'], Site = IDs['S'], Blue = Blue.FOR, Green = Green.FOR,Red = Red.FOR, auto2 = auto2.FOR, auto3 = auto3.FOR,
-                                      Cyto = Cyto.FOR,Nuc.rm = Nuc.rm.FOR, TopSize2 = TopSize2.FOR, TopSize3 = TopSize3.FOR, Nuc.denoising = Nucdenoising.FOR, RO.size =  ROsize.FOR, TEST=F,getCell = getCell.FOR,
-                                      w1OFF = w1OFF.FOR,w2OFF = w2OFF.FOR,w3OFF = w3OFF.FOR, adj = adj.FOR, adj.step1 = adj.step1.FOR, adj.step2 = adj.step2.FOR, adj.step3 = adj.step3.FOR, add.features = ExpFea.FOR, 
-                                      writeSeg = ExpSeg.FOR, writePDF = ExpPDF.FOR, path = path.FOR, getRange = rep(TRUE,3))
-                          })
+                          try({do.call(coloc.Sgl,c(args.coloc,list(Plate = IDs['P'], Time = IDs['TI'], Well = IDs['W'], Site = IDs['S'])))})
                         }
       colnames(Summary)[c(2:5)]=c('PlateID', 'Time','WellID','SiteID');Summary$ObjNum = as.numeric(Summary$ObjNum)
       Summary=Summary[order(Summary$PlateID, Summary$Time,Summary$SiteID,Summary$WellID),,drop=F]
@@ -328,16 +323,16 @@ server = function(input, output, session) {
       
       setProgress(message = "Exporting (can take a while)")
       
-      if(ExportResults.FOR == 'CSV'){
+      if(args.miscs$ExportResults == 'CSV'){
         parLapply(cl = cl, unique(Summary$PlateID), function(x){
           PSummary = Summary[which(Summary$PlateID == x),]
-          write.table(PSummary[!is.na(PSummary$WellID),], paste(path.FOR, paste0(x,'/Results.csv'), sep = '/'), sep=',',row.names=F)
+          write.table(PSummary[!is.na(PSummary$WellID),], paste(args.coloc$path, paste0(x,'/Results.csv'), sep = '/'), sep=',',row.names=F)
         })
       }else{
-        save(Summary, file = paste0(path.FOR,'/Results.RData'))
+        save(Summary, file = paste0(args.coloc$path,'/Results.RData'))
       }
       
-      if(getCell.FOR & as.FCS.FOR){
+      if(args.coloc$getCell & args.miscs$as.FCS){
         clusterEvalQ(cl, library("flowCore"))
         if(!input$TimeCourse == 'YES'){
           parLapply(cl = cl, unique(Summary$PlateID), function(x){ #Several plates, one timepoint
@@ -348,7 +343,7 @@ server = function(input, output, session) {
             #
             MX2FCS(dat = PSummary[-which(PSummary$ObjNum==0),],
                    coi = setdiff(colnames(PSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID")),
-                   export = paste(path.FOR,x,Summary$Time[1],sep = '/'),wlab='WellID')
+                   export = paste(args.coloc$path,x,Summary$Time[1],sep = '/'),wlab='WellID')
           })
         }else{
           parLapply(cl = cl,unique(Summary$Time),function(x){ #One plate, several timepoints
@@ -359,7 +354,7 @@ server = function(input, output, session) {
             #
             MX2FCS(dat = TSummary[-which(TSummary$ObjNum==0),],
                    coi = setdiff(colnames(TSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID")),
-                   export = paste(path.FOR,Summary$PlateID[1],x,sep = '/'),wlab='WellID')
+                   export = paste(args.coloc$path,Summary$PlateID[1],x,sep = '/'),wlab='WellID')
           })
         }
       }
@@ -369,7 +364,7 @@ server = function(input, output, session) {
       #---------------------------------------------------------
       
       t2=Sys.time()
-      write.csv(cbind.data.frame(log.sum, Time = difftime(t2,t1, units = 'mins')),paste(path.FOR,'Parameters.csv', sep = '/'),row.names=F)
+      write.csv(cbind.data.frame(log.sum, Time = difftime(t2,t1, units = 'mins')),paste(args.coloc$path,'Parameters.csv', sep = '/'),row.names=F)
       rm(Summary)
       gc()
     },min=1,max=length(UniID))

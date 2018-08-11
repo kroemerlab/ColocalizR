@@ -37,9 +37,6 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
   if(nch<3 & getCell){
     return('Cannot do cell-by-cell analysis without nuclear stain !')
   }
-  if(getCell){
-    noNucMask = F
-  }
   
   IMList = list()  #Contains original images
   RAWList = list() #Contains adjusted images
@@ -81,11 +78,11 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       #Gets Masks 
       
       #---
-      q = quantile(RAW,probs=seq(0,1,10^(-(adj.step[i]))))
+      q = quantile(RAW,probs=seq(0,1,10**(-(adj.step[i]))))
       R = c(head(q,n=2)[2],tail(q,n=2)[1]);rm(q)
       #---
       LOG = MetaxpR::Normalize(log10(RAW+1))
-
+      
       #-------------------------------------------------
       IMList = c(IMList,list(RAW))
       RAW = MetaxpR::Normalize(RAW,inputRange=R)
@@ -121,18 +118,18 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       
       if((Nuc.rm|getCell) & i==Blue){
         Nuc = RAW
-          if(Nuc.denoising){
-            Nuc = MorphR::MorphRecons(f = geodilate,reference = Nuc,element = makeBrush(RO.size,'disc'),oc='open')
-          }
-          T1 = opening(closing(fillHull(thresh(Nuc,w=50,h=50, offset = w1OFF)),makeBrush(5,'disc')),makeBrush(5,'disc'))
-          
-          if(Seg.method == 'Fast'){
-            seed = erode(T1, makeBrush(19,'box'))
-            NMask = propagate(T1, bwlabel(seed), mask = T1)
-          }else if(Seg.method == 'Robust'){
-            NMask = watershed(distmap(opening(thresh(Nuc,w=50,h=50, offset = w1OFF),makeBrush(15,'disc'))))
-          }
-          rm(list=c('Nuc','seed'))
+        if(Nuc.denoising){
+          Nuc = MorphR::MorphRecons(f = geodilate,reference = Nuc,element = makeBrush(RO.size,'disc'),oc='open')
+        }
+        T1 = opening(closing(fillHull(thresh(Nuc,w=50,h=50, offset = w1OFF)),makeBrush(5,'disc')),makeBrush(5,'disc'))
+        
+        if(Seg.method == 'Fast'){
+          seed = erode(T1, makeBrush(19,'box'))
+          NMask = propagate(T1, bwlabel(seed), mask = T1)
+        }else if(Seg.method == 'Robust'){
+          NMask = watershed(distmap(opening(thresh(Nuc,w=50,h=50, offset = w1OFF),makeBrush(15,'disc'))))
+        }
+        rm(list=c('Nuc','seed'))
       }
       
       ##------------------------------------------------- 
@@ -141,8 +138,8 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       TOP = whiteTopHat(LOG,makeBrush(TopSize[i],'disc'))
       TOP[which(TOP<0)]=0
       TOP = MetaxpR::Normalize(TOP)
-
-
+      
+      
       if(autoSeg[i]){
         C = TOP>(otsu(TOP))
       }else{
@@ -160,18 +157,16 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
   
   if(nch>2){
     if(Nuc.rm){
-      CMask = ceiling((CMask+T1)/2 - T1)
+      CMask = CMask & !T1
     }
-    
     if(getCell){
       OMask = propagate(CMask,NMask,mask = CMask|NMask)
       rm(T1)
       
       if(all(OMask == 0)){
-        getCell = F ; Nuc.rm = F ; noNucMask = T
+        getCell = F;Nuc.rm = F
       }
     }
-
   }
   #
   for(i in 1:nch){
@@ -288,7 +283,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
         
       }
       CellTable = data.frame(PlateID = Plate,Time = Time,WellID = Well,SiteID = Site, CellTable)
-      rm(list=c('PixTable','ObjNum','COLOC','UNION','pixG','pixM','pixR','pixRM','pixGM'))
+      rm(list=c('PixTable','ObjNum','COLOC','UNION','pixG','pixM','pixR'))
       gc()
       
       ## Features ##
@@ -301,7 +296,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
         CytoIDs = sort(unique(as.numeric(OMask[which(OMask!=0)])))
         Cyto_Data = data.frame(CellID = CytoIDs,data.frame(computeFeatures(x = OMask,ref= IMList[[Green]],methods.ref=,'computeFeatures.basic',methods.noref=c('computeFeatures.moment','computeFeatures.shape'), xname='Cyto',refnames='Cpt1')),
                                data.frame(computeFeatures(x = OMask,ref= IMList[[Red]],methods.ref=,'computeFeatures.basic',methods.noref=c('computeFeatures.moment','computeFeatures.shape'), xname='Cyto',refnames='Cpt2')))
-
+        
         
         # Dots
         GDots_Mask = OMask*MList[[Green]]
@@ -328,7 +323,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       if(getCell){
         if(!is.na(CellTable$ObjNum)){
           try({
-            pdf(paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_PixelProfiling.pdf'),w=10,h=10)
+            pdf(paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_PixelProfiling.pdf'),w=7,h=7)
             smoothScatter(pixGM, pixRM, nrpoints = 0, colramp=MyCols, main=paste(Well,'-',Site, sep=' '),nbin=512,
                           bandwidth=0.00005,xaxs='i',yaxs='i',xlab='Channel 2',ylab='Channel 3',useRaster=T,xlim=lim,ylim=lim)
             legend('topright',bty='n',cex=0.6,legend=c(paste('PCC=',round(PCC,2)),paste('ICQ=',round(ICQ,2)),paste('MOC=',round(MOC,2)),paste('SOC=',round(SOC,2))),text.col='red')
@@ -338,7 +333,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       }else{
         if(!is.na(PCC)){
           try({
-            pdf(paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_PixelProfiling.pdf'),w=10,h=10)
+            pdf(paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_PixelProfiling.pdf'),w=7,h=7)
             smoothScatter(pixGM, pixRM, nrpoints = 0, colramp=MyCols, main=paste(Well,'-',Site, sep=' '),nbin=512,
                           bandwidth=0.00005,xaxs='i',yaxs='i',xlab='Channel 2',ylab='Channel 3',useRaster=T,xlim=lim,ylim=lim)
             legend('topright',bty='n',cex=0.6,legend=c(paste('PCC=',round(PCC,2)),paste('ICQ=',round(ICQ,2)),paste('MOC=',round(MOC,2)),paste('SOC=',round(SOC,2))),text.col='red')
@@ -347,31 +342,29 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
         }
       }
     }
-    
-    
+    rm(list=c('pixRM','pixGM'))
+    ##
     if(Site==1 & writeSeg){
       if(getCell){
         if(nch>2){ 
           writeImage(paintObjects(NMask,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(blue = MetaxpR::Normalize(IMList[[Blue]],inputRange=Rm1), green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
-                                                                                  col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'))
+                                                                                  col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'),compression = 'LZW')
         }else{
           writeImage(paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(OMask, rgbImage(green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
-                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'))
+                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'),compression = 'LZW')
         }
       }else{
-        if(nch>2  & !noNucMask){ 
+        if(nch>2 & Nuc.rm){
           writeImage(paintObjects(T1,paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(blue = MetaxpR::Normalize(IMList[[Blue]],inputRange=Rm1), green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
-                                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'))
+                                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), col = 'blue', thick = T), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'),compression = 'LZW')
         }else{
           writeImage(paintObjects(MList[[Green]], paintObjects(MList[[Red]],paintObjects(CMask, rgbImage(green=MetaxpR::Normalize(IMList[[Green]], inputRange=Rm2),red =MetaxpR::Normalize(IMList[[Red]], inputRange=Rm3)), col = 'yellow', thick = T),                                                                        
-                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'))
+                                                               col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F), paste0(path, '/',Plate,'/',Time,'/',Well,'/',Well,'_s',Site,'_ImSeg1.tif'),compression = 'LZW')
         }
       }
     }
-    
     rm(list=c(grep('Mask|List', ls(),value=T),'CytoIm'))
     gc()
-    
     #Write results in arrays
     if(!getCell){
       return(data.frame(ObjNum=0,PlateID = Plate,Time = Time,WellID = Well,SiteID = Site,PCC = PCC,ICQ = ICQ,SOC = SOC,SOCR = SOCR,SOCG = SOCG,MOC = MOC))

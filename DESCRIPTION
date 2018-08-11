@@ -1,5 +1,5 @@
 Package: ColocalizR
-Version: 0.4.3
+Version: 0.4.4
 Date: 2017-07-07
 Title: ColocalizR
 Description: ColocalizR is an R-based image-analysis application developed for the quantification of co-localization in high-throughput, on a cell-by-cell basis.

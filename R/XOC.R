@@ -1,8 +1,7 @@
-#' ICQ and MOC calculations
+#' ICQ calculation
 #'
 #' @keywords internal
 #' @export
-
 ICQ.calc = function(MAT){
   
   if(dim(MAT)[2]!=2){
@@ -15,6 +14,10 @@ ICQ.calc = function(MAT){
   
 }
 
+#' MOC calculation
+#'
+#' @keywords internal
+#' @export
 MOC.calc = function(MAT){
   
   if(dim(MAT)[2]!=2){
