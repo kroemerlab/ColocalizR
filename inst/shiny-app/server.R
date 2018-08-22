@@ -292,7 +292,7 @@ server = function(input, output, session) {
       
     })
     #Log files
-    log.sum = cbind.data.frame(NbPlates = length(unique(MyImCl.FOR$PlateID)), NucOffset = input$w1OFF, NucInMask =(input$Nucrm == 'YES'), CytoSeg =  input$Cyto, AdjCyto = Adj$adj_value, AutoSeg.Cyto1 = (input$auto2 == 'YES'),
+    log.sum = cbind.data.frame(NbPlates = length(unique(MyImCl.FOR$PlateID)), NucOffset = input$w1OFF, RmNucFromMask =(input$Nucrm == 'YES'), CytoSeg =  input$Cyto, AdjCyto = Adj$adj_value, AutoSeg.Cyto1 = (input$auto2 == 'YES'),
                                Cyto1Offset = ifelse((input$auto2 == 'YES'), NA, input$w2OFF), TopHatCyto1 = input$TopSize2, AutoSeg.Cyto2 = (input$auto2 == 'YES'), TopHatCyto2 = input$TopSize3,
                                Cyto2Offset = ifelse((input$auto3 == 'YES'), NA, input$w3OFF), HistoAdjust.Nuc = input$adj.step1, HistoAdjust.Cyto1 = input$adj.step2, HistoAdjust.Cyto2 = input$adj.step3)
     
@@ -317,7 +317,7 @@ server = function(input, output, session) {
                           IDs = unlist(strsplit(ID,split='_'));names(IDs) = c('P', 'TI', 'W', 'S')
                           try({do.call(coloc.Sgl,c(args.coloc,list(Plate = IDs['P'], Time = IDs['TI'], Well = IDs['W'], Site = IDs['S'])))})
                         }
-      colnames(Summary)[c(2:5)]=c('PlateID', 'Time','WellID','SiteID');Summary$ObjNum = as.numeric(Summary$ObjNum)
+      Summary$ObjNum = as.numeric(Summary$ObjNum)
       Summary=Summary[order(Summary$PlateID, Summary$Time,Summary$SiteID,Summary$WellID),,drop=F]
       Summary$GlobalID = paste(Summary$PlateID, Summary$Time, Summary$Well, sep = '_')
       
@@ -371,12 +371,9 @@ server = function(input, output, session) {
   })
   
   #==================================================================================================================================================================
-  ## Emergency exit
+  ## Exit
   
   observeEvent(input$stop,{
     stopApp()
-    if(length(grep('mytempdir',ls()))!=0){
-      unlink(mytempdir, recursive =T, force=T)
-    }
   })
 }
