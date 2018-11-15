@@ -203,35 +203,35 @@ server = function(input, output, session) {
     sliderInput('Rm%d', 'Adjust image', min=0, max=1, step=0.01, value=AdjIm$Auto%d)})",x,x,x))))
   
   ##
-  Adj = reactiveValues(adj_value = 1)
-  observe({
-    if(input$Cyto == 'Both'){ 
-      observeEvent((input$adj1 | input$adj2),{
-        inputs = c(input$adj1,input$adj2)
-        if(all(!is.null(inputs) & !is.na(inputs))){
-          if(any(inputs != Adj$adj_value)){
-            Adj$adj_value = inputs[which(inputs != Adj$adj_value)]
-            updateNumericInput(session, inputId = 'adj1', value = Adj$adj_value)
-            updateNumericInput(session, inputId = 'adj2', value = Adj$adj_value)
-          }
-        }
-      })
-    }else if(input$Cyto == 'Compt 1'){ 
-      Adj$adj_value = input$adj1
-    }else if(input$Cyto == 'Compt 2'){ 
-      Adj$adj_value = input$adj2
-    }
-  })
+  # Adj = reactiveValues(adj_value = 1)
+  # observe({
+  #   if(input$Cyto == 'Both'){ 
+  #     observeEvent((input$adj1 | input$adj2),{
+  #       inputs = c(input$adj1,input$adj2)
+  #       if(all(!is.null(inputs) & !is.na(inputs))){
+  #         if(any(inputs != Adj$adj_value)){
+  #           Adj$adj_value = inputs[which(inputs != Adj$adj_value)]
+  #           updateNumericInput(session, inputId = 'adj1', value = Adj$adj_value)
+  #           updateNumericInput(session, inputId = 'adj2', value = Adj$adj_value)
+  #         }
+  #       }
+  #     })
+  #   }else if(input$Cyto == 'Compt 1'){ 
+  #     Adj$adj_value = input$adj1
+  #   }else if(input$Cyto == 'Compt 2'){ 
+  #     Adj$adj_value = input$adj2
+  #   }
+  # })
   
   Z = reactiveValues(zoom='100%')
   observe({
-    zooms = c(input$zoom1,input$zoom2,input$zoom3,input$zoom4)
+    zooms = c(input$zoom1,input$zoom2,input$zoom3,input$zoom4,input$zoom5)
     if(length(unique(zooms))==1){
       Z$zoom = unique(zooms)
     }else{
       Z$zoom = zooms[which(sapply(zooms,function(x)length(which(x==zooms)))==1)]
     }
-    invisible(sapply(1:4,function(x)eval(parse(text=sprintf("updateRadioButtons(session,'zoom%d',selected=Z$zoom)",x)))))
+    invisible(sapply(1:5,function(x)eval(parse(text=sprintf("updateRadioButtons(session,'zoom%d',selected=Z$zoom)",x)))))
   })
   
   #==========================================================================================================================================================
@@ -241,6 +241,7 @@ server = function(input, output, session) {
   ThumbIm = reactiveValues(I = c(lapply(1:4,function(x)Thumb),c(0,0)))
   #
   observeEvent({
+    input$Test4
     input$Test3
     input$Test2
     input$Test1},{
@@ -249,11 +250,11 @@ server = function(input, output, session) {
         isolate({
           TempI = coloc.Sgl(MyImCl = ConInf$Welldat, Plate = input$SampPlate1, Time = input$SampTime1, Well= input$SampWell1, Site = input$SampSite1, Blue = as.numeric(input$BlueChannel), Green = as.numeric(input$GreenChannel), Red = as.numeric(input$RedChannel), auto2 = (input$auto2 == 'YES'), 
                             auto3 = (input$auto3 == 'YES'), Cyto = input$Cyto, Nuc.rm = (input$Nucrm == 'YES'), TopSize2 = input$TopSize2, TopSize3 = input$TopSize3,  w1OFF = input$w1OFF,w2OFF = input$w2OFF,w3OFF = input$w3OFF, Nuc.denoising = (input$Denoising=='YES'), RO.size = input$RO.size,  
-                            FullIm = T, TEST=T, getCell = (input$CellIm == 'YES'), adj.step1 = input$adj.step1, adj.step2 = input$adj.step2, adj.step3 = input$adj.step3, adj = Adj$adj_value, getRange = c((input$AutoAd1=='YES'),(input$AutoAd2=='YES'),(input$AutoAd3=='YES')), 
-                            Rm1 = input$Rm1, Rm2 = input$Rm2, Rm3= input$Rm3)
+                            NucWindow = as.numeric(input$NucWindow), SegCyto.met = input$SegCytoMet, CytoOFF = input$CytoOFF, CytoWindow = as.numeric(input$CytoWindow), FullIm = T, TEST=T, getCell = (input$CellIm == 'YES'), adj.step1 = input$adj.step1, adj.step2 = input$adj.step2, adj.step3 = input$adj.step3, 
+                            adj = as.numeric(input$adj), getRange = c((input$AutoAd1=='YES'),(input$AutoAd2=='YES'),(input$AutoAd3=='YES')),Rm1 = input$Rm1, Rm2 = input$Rm2, Rm3= input$Rm3)
         })
-        ThumbIm$I = TempI[c(1:4,8:9)]
-        AdjIm$Auto1 = TempI[[5]];AdjIm$Auto2 = TempI[[6]];AdjIm$Auto3 = TempI[[7]]
+        ThumbIm$I = TempI[c(1:5,9:10)]
+        AdjIm$Auto1 = TempI[[6]];AdjIm$Auto2 = TempI[[7]];AdjIm$Auto3 = TempI[[8]]
         #
         setProgress(message='Done !')
       })
@@ -265,14 +266,14 @@ server = function(input, output, session) {
     xEx1 = ((Center[1]-Z[1]):(Center[1]+Z[1]))
     yEx1 = ((Center[2]-Z[2]):(Center[2]+Z[2]))
     
-    sapply(1:4,function(x)eval(parse(text=sprintf("output$LookUp%d <-renderPlot({
+    sapply(1:5,function(x)eval(parse(text=sprintf("output$LookUp%d <-renderPlot({
           display((ThumbIm$I[[%d]])[xEx1,yEx1,], method='raster')
         })",x,x))))
   })
   
   ## Give an idea of PCC/SOC
   output$SampPCC = renderTable({
-    data.frame(PCC = round(ThumbIm$I[[5]],2), SOC = round(ThumbIm$I[[6]],2))
+    data.frame(PCC = round(ThumbIm$I[[6]],2), SOC = round(ThumbIm$I[[7]],2))
   })
   
   #===============================================================================================================================================================
@@ -284,15 +285,16 @@ server = function(input, output, session) {
       UniID = unique(MyImCl.FOR$GlobalID)
       #--
       args.coloc = list(MyImCl = MyImCl.FOR, Blue = as.numeric(input$BlueChannel), Green = as.numeric(input$GreenChannel),Red = as.numeric(input$RedChannel), auto2 = (input$auto2 == 'YES'), auto3 = (input$auto3 == 'YES'),
-                        Cyto = input$Cyto, Nuc.rm = (input$Nucrm == 'YES'), TopSize2 = input$TopSize2, TopSize3 = input$TopSize3, Nuc.denoising = (input$Denoising == 'YES'), RO.size =  input$RO.size, TEST=F,getCell = (input$CellIm == 'YES'),
-                        w1OFF = input$w1OFF,w2OFF = input$w2OFF,w3OFF = input$w3OFF, adj = Adj$adj_value, adj.step1 = input$adj.step1, adj.step2 = input$adj.step2, adj.step3 = input$adj.step3, add.features = (input$ExpFea == 'YES'), 
+                        Cyto = input$Cyto, Nuc.rm = (input$Nucrm == 'YES'), TopSize2 = input$TopSize2, TopSize3 = input$TopSize3, Nuc.denoising = (input$Denoising=='YES'), RO.size = input$RO.size,  
+                        NucWindow = as.numeric(input$NucWindow), SegCyto.met = input$SegCytoMet, CytoOFF = input$CytoOFF, CytoWindow = as.numeric(input$CytoWindow), TEST=F,getCell = (input$CellIm == 'YES'),
+                        w1OFF = input$w1OFF,w2OFF = input$w2OFF,w3OFF = input$w3OFF, adj = as.numeric(input$adj), adj.step1 = input$adj.step1, adj.step2 = input$adj.step2, adj.step3 = input$adj.step3, add.features = (input$ExpFea == 'YES'), 
                         writeSeg = (input$ExpSeg == 'YES'), writePDF = (input$ExpPDF == 'YES'), path = as.character(input$savefolder.str), getRange = rep(TRUE,3))
       #--
       args.miscs = list(ExportResults=input$ExportResults,as.FCS=(input$ExportFCS == 'YES'))
       
     })
     #Log files
-    log.sum = cbind.data.frame(NbPlates = length(unique(MyImCl.FOR$PlateID)), NucOffset = input$w1OFF, RmNucFromMask =(input$Nucrm == 'YES'), CytoSeg =  input$Cyto, AdjCyto = Adj$adj_value, AutoSeg.Cyto1 = (input$auto2 == 'YES'),
+    log.sum = cbind.data.frame(NbPlates = length(unique(MyImCl.FOR$PlateID)), NucOffset = input$w1OFF, RmNucFromMask =(input$Nucrm == 'YES'), CytoSeg =  input$Cyto, AdjCyto = input$adj, AutoSeg.Cyto1 = (input$auto2 == 'YES'),
                                Cyto1Offset = ifelse((input$auto2 == 'YES'), NA, input$w2OFF), TopHatCyto1 = input$TopSize2, AutoSeg.Cyto2 = (input$auto2 == 'YES'), TopHatCyto2 = input$TopSize3,
                                Cyto2Offset = ifelse((input$auto3 == 'YES'), NA, input$w3OFF), HistoAdjust.Nuc = input$adj.step1, HistoAdjust.Cyto1 = input$adj.step2, HistoAdjust.Cyto2 = input$adj.step3)
     

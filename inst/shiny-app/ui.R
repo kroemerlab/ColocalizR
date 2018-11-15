@@ -88,10 +88,7 @@ ui = fluidPage(
                           column(width=4,
                                  radioButtons("RedChannel", label = "Compt 2 :",inline = F,
                                               choices = c(1,2,3),selected = 3)
-                          )),
-                        radioButtons("Cyto", label = "Cytoplasm segmentation on :",inline = T,
-                                     choices = c('Compt 1','Compt 2','Both'),selected = 'Compt 1'),
-                        style = 'padding-left:3px;padding-right:3px;')
+                          )))
                ),
                
                column(2,align='left', offset = 0,
@@ -137,16 +134,17 @@ ui = fluidPage(
                                      choices = c("YES","NO"),selected = "YES"),
                         
                         conditionalPanel(
-                          condition = "input.Nucrm == 'YES'",                        
+                          condition = "input.Nucrm == 'YES' | input.CellIm == 'YES'",                        
                           radioButtons("Seg", label = "Segmentation method :",inline = T,
                                        choices = c("Fast","Robust"),selected = "Fast"),
                           radioButtons("Denoising", label = "Denoise image ?",inline = T,
                                        choices = c("YES","NO"),selected = "NO"),
+                          numericInput("NucWindow",label='Window size for Nucleus',value = 50, step=5,min=1),
+                          numericInput("w1OFF",label='Offset for Nucleus',value = 0.1, step=0.01)),
                           conditionalPanel(
                             condition = "input.Denoising == 'YES'",
                             numericInput('RO.size',label='Denoising filter size', value = 25, step = 2)
                           ),
-                          numericInput("w1OFF",label='Offset for Nucleus',value = 0.1, step=0.01)),
                         numericInput('adj.step1',label='Extrema smoothing',value = 2, step=1,min=1,max=8),
                         radioButtons("AutoAd1", label = "Auto-adjust",inline = T,
                                      choices = c("YES","NO"),selected = "YES"),
@@ -160,11 +158,43 @@ ui = fluidPage(
                       br(),
                       imageOutput("LookUp1",height=600, width=600, inline=F),
                       br(),
-                      #sliderInput("zoom1", "Zoom", min=1, max=5, step=0.5, value=1)
                       radioButtons("zoom1", label = "Zoom %",inline = T,
                                    choices = c(100,200,400,800),selected = 100)
                ))
     ),
+    
+    tabPanel("Cytoplasm",
+             fluidRow(
+               column(3,align='center',
+                      br(),
+                      wellPanel(
+                        radioButtons("Cyto", label = "Cytoplasm segmentation on :",inline = T,
+                                     choices = c('Compt 1','Compt 2','Both'),selected = 'Compt 1'),
+                        radioButtons("SegCytoMet", label = "Cytoplasm segmentation method :",inline = T,
+                                     choices = c('Automated','Adaptive','Both'),selected = 'Automated'),
+                        conditionalPanel(
+                          condition = "input.SegCytoMet == 'Automated' | input.SegCytoMet == 'Both'" ,
+                          numericInput('adj',label='Adjustment for cytoplasm segmentation',value = 1, step = 0.01, min = -2, max = 2)
+                        ),
+                        conditionalPanel(
+                          condition = "input.SegCytoMet == 'Adaptive' | input.SegCytoMet == 'Both'" ,
+                          numericInput("CytoWindow","Window size for Cytoplasm:", value = 50, step = 5, min = 0),
+                          numericInput('CytoOFF',label='Offset for Cytoplasm:',value = 0.1, step=0.01)
+                        ),
+                        (actionButton('Test2',label='TEST SETTINGS'))
+                      )
+               ),
+
+               column(6, align='center',
+                      br(),
+                      imageOutput("LookUp2",height=600, width=600, inline=F),
+                      br(),
+                      radioButtons("zoom2", label = "Zoom %",inline = T,
+                                   choices = c(100,200,400,800),selected = 100)
+
+               ))
+             
+             ),
     
     tabPanel("Compartment 1",
              
@@ -172,9 +202,6 @@ ui = fluidPage(
                column(3,align='center',
                       br(),
                       wellPanel(
-                        conditionalPanel(
-                          condition = "input.Cyto == 'Compt 1' | input.Cyto == 'Both'",
-                          numericInput('adj1',label='Adjustment for cytoplasm segmentation',value = 1, step = 0.01, min = -2, max = 2)),
                         radioButtons("auto2", label = "Automated segmentation :",inline = T,
                                      choices = c("YES","NO"),selected = "YES"),
                         conditionalPanel(
@@ -185,14 +212,13 @@ ui = fluidPage(
                         radioButtons("AutoAd2", label = "Auto-adjust",inline = T,
                                      choices = c("YES","NO"),selected = "YES"),
                         uiOutput("hRm2"),
-                        (actionButton('Test2',label='TEST SETTINGS'))
+                        (actionButton('Test3',label='TEST SETTINGS'))
                       )),
                column(6, align='center',
                       br(),
-                      imageOutput("LookUp2",height=600, width=600, inline=F),
+                      imageOutput("LookUp3",height=600, width=600, inline=F),
                       br(),
-                      #sliderInput("zoom2", "Zoom", min=1, max=5, step=0.5, value=1)
-                      radioButtons("zoom2", label = "Zoom %",inline = T,
+                      radioButtons("zoom3", label = "Zoom %",inline = T,
                                    choices = c(100,200,400,800),selected = 100)
                ))
     ),
@@ -203,9 +229,6 @@ ui = fluidPage(
                column(3,align='center',
                       br(),
                       wellPanel(
-                        conditionalPanel(
-                          condition = "input.Cyto == 'Compt 2' | input.Cyto == 'Both'",
-                          numericInput('adj2',label='Adjustment for cytoplasm segmentation', value = 1, step = 0.01, min = -2, max = 2)),
                         radioButtons("auto3", label = "Automated segmentation :",inline = T,
                                      choices = c("YES","NO"),selected = "YES"),
                         conditionalPanel(
@@ -216,14 +239,13 @@ ui = fluidPage(
                         radioButtons("AutoAd3", label = "Auto-adjust",inline = T,
                                      choices = c("YES","NO"),selected = "YES"),
                         uiOutput("hRm3"),
-                        (actionButton('Test3',label='TEST SETTINGS'))
+                        (actionButton('Test4',label='TEST SETTINGS'))
                       )),
                column(6, align='center',
                       br(),
-                      imageOutput("LookUp3",height=600, width=600, inline=F),
+                      imageOutput("LookUp4",height=600, width=600, inline=F),
                       br(),
-                      #sliderInput("zoom3", "Zoom", min=1, max=5, step=0.5, value=1)
-                      radioButtons("zoom3", label = "Zoom %",inline = T,
+                      radioButtons("zoom4", label = "Zoom %",inline = T,
                                    choices = c(100,200,400,800),selected = 100)
                ))       
     ),
@@ -242,10 +264,9 @@ ui = fluidPage(
                ),
                column(6, align = 'center',
                       br(),
-                      imageOutput("LookUp4",height=600, width=600, inline=F),
+                      imageOutput("LookUp5",height=600, width=600, inline=F),
                       br(),
-                      #sliderInput("zoom4", "Zoom",  min=1, max=5, step=0.5, value=1)
-                      radioButtons("zoom4", label = "Zoom %",inline = T,
+                      radioButtons("zoom5", label = "Zoom %",inline = T,
                                    choices = c(100,200,400,800),selected = 100)
                )
              )
