@@ -116,10 +116,9 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
         if(SegCyto.met == 'Automated'){
           CMask = CytoIm>(adj*otsu(CytoIm))
         }else if(SegCyto.met == 'Adaptive'){
-          CMask = Reduce('pmax', lapply(seq(0.5,1.5,0.25)*as.numeric(CytoWindow), function(x) as.matrix(thresh(CytoIm, w = x, h = x, offset = CytoOFF))))
+          CMask = Reduce(function(x,y) {x|y}, lapply(seq(0.5,1.5,0.25)*as.numeric(CytoWindow), function(x) thresh(CytoIm, w = x, h = x, offset = CytoOFF)))
         }else if(SegCyto.met == 'Both'){
-          CMask = Reduce('pmax', list((as.matrix(CytoIm>(adj*otsu(CytoIm)))), 
-                                      Reduce('pmax', lapply(seq(0.5,1.5,0.25)*as.numeric(CytoWindow), function(x) as.matrix(thresh(CytoIm, w = x, h = x, offset = CytoOFF))))))
+          CMask = Reduce(function(x,y) {x|y}, c(list(CytoIm>(adj*otsu(CytoIm))),lapply(seq(0.5,1.5,0.25)*as.numeric(CytoWindow), function(x) thresh(CytoIm, w = x, h = x, offset = CytoOFF))))
         }
       }
       
