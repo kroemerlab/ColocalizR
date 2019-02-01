@@ -1,12 +1,12 @@
 library(shiny)
+library(shinyjs)
 library(MetaxpR)
 
 library(gtools)
 library(rChoiceDialogs)
-library(tiff)
+library(RODBC)
 library(EBImage)
 library(MorphR)
-library(RODBC)
 
 library(doParallel)
 library(doSNOW)
@@ -19,13 +19,26 @@ server = function(input, output, session) {
   })
   
   OS = Sys.info()[['sysname']]
+  
+  #===================================================================================================================================================
+  ## Buttons activation logistics
+  
+  observe({
+    if (is.null(ConInf$Welldat)){
+      shinyjs::disable(id='ColSet')
+    }else{
+      shinyjs::enable(id='ColSet')
+    }
+  })
+  
   #===================================================================================================================================================
   ## PlateMap information
   ConInf = reactiveValues(DrugID = data.frame(PlateID = rep('PlateID',15),WellID=paste0('Well',1:15), Drug = paste('Drug',c(1:15)),
                                               Conc = c(sample.int(100,size=15)),Unit = rep('uM',15)),
                           Welldat = NULL, DB=NULL)
   Plates <- reactiveValues()
-  #
+  TestImage = reactiveValues(Im = NULL, size = NULL, status = 1)
+  
   output$PlateMap = renderDataTable(ConInf$DrugID, options = list(pageLength = 15,lengthMenu = c(15,20,25)))
   AdjIm = reactiveValues(Auto1 = c(0,1), Auto2 = c(0,1), Auto3 = c(0,1))
   Settings.status = reactiveValues(text = "No error detected", color = '#76EE00')
@@ -64,8 +77,8 @@ server = function(input, output, session) {
     #
     if(length(Plates$location) == 0){ Plates$location = normalizePath(path.expand(getwd()), winslash = '/') }
     paths = list.dirs(Plates$location, recursive = T, full.names = T)
-    Plates$folders = as.numeric(basename(paths))[!is.na(as.numeric(basename(paths)))]
-    Plates$paths = paths[!is.na(as.numeric(basename(paths)))]
+    Plates$folders = na.omit(basename(paths))
+    Plates$paths = paths[!is.na(basename(paths))]
     output$PlateIDs = renderUI({
       selectizeInput("SPlates","Plate selection :", choices = Plates$folders, multiple = input$MulPlates == 'YES', selected=Plates$folders[1])
     })
@@ -88,32 +101,34 @@ server = function(input, output, session) {
   ## Import images------------------------------------------------
   
   observeEvent(input$ImpImg,{
-    Plates$PlateIDs = as.numeric(input$SPlates) 
+    Plates$PlateIDs = input$SPlates
     withProgress({
       
       setProgress(message = "Creating clusters...")
-      ncores = detectCores()-1
-      if(ncores>length(as.numeric(input$SPlates))){
-        ncores=length(as.numeric(input$SPlates))
-      }
-      cl = parallel::makeCluster(ncores)
-      invisible(clusterEvalQ(cl, c(library(MetaxpR),library(gtools),library(reshape2),library(ColocalizR),library(doParallel))))
-      TimeCourse = (input$TimeCourse == 'YES')
-      PlateIDs = as.numeric(input$SPlates)
       
-      setProgress(message = "Loading images info...")
-      if(input$UseSQL=='YES'){
-        SERVER = input$SERVER
-        DB = ConInf$DB
-        ConInf$Welldat = do.call('smartbind',parLapply(cl=cl, PlateIDs, function(x) getImInfo(x, SQL.use = T, SERVER = SERVER, DB = DB, TimeCourse = TimeCourse)))
-      }else{
-        folders = Plates$folders
-        paths = Plates$paths
-        ConInf$Welldat = do.call('smartbind',parLapply(cl=cl,PlateIDs, function(x) getImInfo(x, SQL.use = F, PlateLoc = paths[grep(x, folders, fixed = T)], TimeCourse = TimeCourse)))
-      }
-      stopCluster(cl);rm(cl)
+      try({
+        ncores = detectCores()-1
+        if(ncores>length(input$SPlates)){
+          ncores=length(input$SPlates)
+        }
+        cl = parallel::makeCluster(ncores)
+        invisible(clusterEvalQ(cl, c(library(MetaxpR),library(gtools),library(reshape2),library(ColocalizR),library(doParallel))))
+        TimeCourse = (input$TimeCourse == 'YES')
+        PlateIDs = input$SPlates
+        
+        setProgress(message = "Loading images info...")
+        if(input$UseSQL=='YES'){
+          SERVER = input$SERVER
+          DB = ConInf$DB
+          ConInf$Welldat = do.call('smartbind',parLapply(cl=cl, PlateIDs, function(x) getImInfo(as.numeric(x), SQL.use = T, SERVER = SERVER, DB = DB, TimeCourse = TimeCourse)))
+        }else{
+          folders = Plates$folders
+          paths = Plates$paths
+          ConInf$Welldat = do.call('smartbind',parLapply(cl=cl,PlateIDs, function(x) getImInfo(x, SQL.use = F, PlateLoc = paths[grep(x, folders, fixed = T)], TimeCourse = TimeCourse)))
+        }
+        stopCluster(cl);rm(cl)
+      })
       setProgress(message = "Images loaded!")
-      
     })
   })
   
@@ -154,8 +169,21 @@ server = function(input, output, session) {
     output$SampSite = renderUI({
       Site1 = 1
       numericInput("SampSite1", "Site :", Site1)
-    }) 
+    })
   })
+  observe({  
+    if(!is.null(ConInf$Welldat)){
+      TestImage$Im = as.character(ConInf$Welldat$MyIm[which(ConInf$Welldat$PlateID == input$SampPlate1 & ConInf$Welldat$TimePoint ==  input$SampTime1 &
+                                                              ConInf$Welldat$Well == input$SampWell1 & ConInf$Welldat$Site == input$SampSite1 & ConInf$Welldat$Channel == 'w1')])
+      
+      if(length(TestImage$Im)==0){
+        TestImage$status = 0
+      }else{
+        TestImage$status = 1
+      }
+    }
+  })
+  
   #----------------------------------------------------------------
   ##CPU threads optimization
   
@@ -168,9 +196,9 @@ server = function(input, output, session) {
   
   ##Check if settings are valid : Basic error handling
   observe({
-    if(input$savefolder==0){
-      Settings.status$text="Warning : No output folder selected"
-      Settings.status$color="FF9900"
+    if(is.null(ConInf$Welldat)){
+      Settings.status$text="No images loaded"
+      Settings.status$color="#FF0000"
     }else{
       if(!is.null(ConInf$Welldat)&length(unique((ConInf$Welldat)$Channel))<3 & (input$CellIm=='YES')){
         Settings.status$text="Need nucleus for cell-by-cell analysis"
@@ -186,9 +214,18 @@ server = function(input, output, session) {
           }else{
             if(length(unique(c(input$BlueChannel,input$GreenChannel,input$RedChannel)))!=3){
               Settings.status$text='The 3 channels cannot have the same number'
-              Settings.status$color="#FF0000"   
+              Settings.status$color="#FF0000" 
             }else{
-              Settings.status$text = "No obvious error detected";Settings.status$color = '#76EE00'
+              if(!is.null(ConInf$Welldat) & TestImage$status==0){
+                Settings.status$text = "Images not found";Settings.status$color = "#FF0000"
+              }else{
+                if(input$savefolder==0){
+                  Settings.status$text="Warning : No output folder selected"
+                  Settings.status$color="FF9900"
+                }else{
+                  Settings.status$text = "No obvious error detected";Settings.status$color = '#76EE00'
+                }
+              }
             }
           }
         }
@@ -202,49 +239,21 @@ server = function(input, output, session) {
   sapply(1:3,function(x)eval(parse(text=sprintf("output$hRm%d = renderUI({
     sliderInput('Rm%d', 'Adjust image', min=0, max=1, step=0.01, value=AdjIm$Auto%d)})",x,x,x))))
   
-  ##
-  # Adj = reactiveValues(adj_value = 1)
-  # observe({
-  #   if(input$Cyto == 'Both'){ 
-  #     observeEvent((input$adj1 | input$adj2),{
-  #       inputs = c(input$adj1,input$adj2)
-  #       if(all(!is.null(inputs) & !is.na(inputs))){
-  #         if(any(inputs != Adj$adj_value)){
-  #           Adj$adj_value = inputs[which(inputs != Adj$adj_value)]
-  #           updateNumericInput(session, inputId = 'adj1', value = Adj$adj_value)
-  #           updateNumericInput(session, inputId = 'adj2', value = Adj$adj_value)
-  #         }
-  #       }
-  #     })
-  #   }else if(input$Cyto == 'Compt 1'){ 
-  #     Adj$adj_value = input$adj1
-  #   }else if(input$Cyto == 'Compt 2'){ 
-  #     Adj$adj_value = input$adj2
-  #   }
-  # })
-  
-  Z = reactiveValues(zoom='100%')
-  observe({
-    zooms = c(input$zoom1,input$zoom2,input$zoom3,input$zoom4,input$zoom5)
-    if(length(unique(zooms))==1){
-      Z$zoom = unique(zooms)
-    }else{
-      Z$zoom = zooms[which(sapply(zooms,function(x)length(which(x==zooms)))==1)]
-    }
-    invisible(sapply(1:5,function(x)eval(parse(text=sprintf("updateRadioButtons(session,'zoom%d',selected=Z$zoom)",x)))))
-  })
-  
   #==========================================================================================================================================================
   ## Image display for testing channel parameters
   
   Thumb = readImage('Thumb.jpg')
-  ThumbIm = reactiveValues(I = c(lapply(1:4,function(x)Thumb),c(0,0)))
+  ThumbIm = reactiveValues(I = c(lapply(1:5,function(x)Thumb),c(0,0)))
   #
-  observeEvent({
-    input$Test4
-    input$Test3
-    input$Test2
-    input$Test1},{
+  
+  observeEvent(input$Test1 | input$Test2 | input$Test3 | input$Test4, {
+    if(input$Test1==0 && input$Test2==0 && input$Test3==0 && input$Test4==0){
+      return()
+    }
+    if(is.null(TestImage$Im) | length(TestImage$Im)==0){
+      return()
+    }else{
+      invisible(sapply(c("button","input"), function(x) shinyjs::disable(selector = x)))
       withProgress({
         setProgress(message='Segmenting images...')
         isolate({
@@ -258,17 +267,13 @@ server = function(input, output, session) {
         #
         setProgress(message='Done !')
       })
-    })
+    }
+    invisible(sapply(c("button","input"), function(x) shinyjs::enable(selector = x)))
+  })
   #
   observe({
-    Center = dim(ThumbIm$I[[1]])/2
-    Z = floor(Center*100/as.numeric(Z$zoom))
-    xEx1 = ((Center[1]-Z[1]):(Center[1]+Z[1]))
-    yEx1 = ((Center[2]-Z[2]):(Center[2]+Z[2]))
-    
-    sapply(1:5,function(x)eval(parse(text=sprintf("output$LookUp%d <-renderPlot({
-          display((ThumbIm$I[[%d]])[xEx1,yEx1,], method='raster')
-        })",x,x))))
+    sapply(1:5,function(x)eval(parse(text=sprintf("output$LookUp%d <-renderDisplay({
+          display(ThumbIm$I[[%d]])})",x,x))))
   })
   
   ## Give an idea of PCC/SOC
@@ -279,6 +284,7 @@ server = function(input, output, session) {
   #===============================================================================================================================================================
   ## Launch Image Analysis
   observeEvent(input$launcher,{
+    invisible(sapply(c("button","input"), function(x) shinyjs::disable(selector = x)))
     #Parameters to be exported in foreach 
     isolate({
       MyImCl.FOR = ConInf$Welldat
@@ -370,6 +376,7 @@ server = function(input, output, session) {
       rm(Summary)
       gc()
     },min=1,max=length(UniID))
+    invisible(sapply(c("button","input"), function(x) shinyjs::enable(selector = x)))
   })
   
   #==================================================================================================================================================================

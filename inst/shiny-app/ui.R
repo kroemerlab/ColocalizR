@@ -1,4 +1,5 @@
 ui = fluidPage(
+  shinyjs::useShinyjs(),
   
   includeCSS("www/bootstrap.css"),
   includeCSS("www/Progress.css"),
@@ -89,7 +90,7 @@ ui = fluidPage(
                                  radioButtons("RedChannel", label = "Compt 2 :",inline = F,
                                               choices = c(1,2,3),selected = 3)
                           )))
-               ),
+               ,id='ColSet'),
                
                column(2,align='left', offset = 0,
                       h3('Output Settings'),
@@ -98,7 +99,7 @@ ui = fluidPage(
                         h4(''),
                         actionButton("savefolder", label = 'Select folder'),
                         textInput("savefolder.str", label ='', value = paste0(getwd(),'/Results'))
-                      ),
+                      ,id='OutSet'),
                       br(),
                       h3('Test Settings'),
                       wellPanel(   
@@ -106,7 +107,7 @@ ui = fluidPage(
                         uiOutput("SampTime"),
                         uiOutput("SampWell"),
                         uiOutput("SampSite")
-                      )
+                      ,id='TestSet')
                ),
                column(2,align='left', offset = 0,
                       h3('Hardware Settings'),
@@ -151,16 +152,14 @@ ui = fluidPage(
                         uiOutput("hRm1"),
                         (actionButton('Test1',label='TEST SETTINGS'))
                       )
-                      
+      
                ),
-               
+
                column(6, align='center',
                       br(),
-                      imageOutput("LookUp1",height=600, width=600, inline=F),
-                      br(),
-                      radioButtons("zoom1", label = "Zoom %",inline = T,
-                                   choices = c(100,200,400,800),selected = 100)
+                      EBImage::displayOutput("LookUp1",width='600px',height='600px')
                ))
+
     ),
     
     tabPanel("Cytoplasm",
@@ -187,11 +186,7 @@ ui = fluidPage(
 
                column(6, align='center',
                       br(),
-                      imageOutput("LookUp2",height=600, width=600, inline=F),
-                      br(),
-                      radioButtons("zoom2", label = "Zoom %",inline = T,
-                                   choices = c(100,200,400,800),selected = 100)
-
+                      EBImage::displayOutput("LookUp2",width='600px',height='600px')
                ))
              
              ),
@@ -216,10 +211,7 @@ ui = fluidPage(
                       )),
                column(6, align='center',
                       br(),
-                      imageOutput("LookUp3",height=600, width=600, inline=F),
-                      br(),
-                      radioButtons("zoom3", label = "Zoom %",inline = T,
-                                   choices = c(100,200,400,800),selected = 100)
+                      EBImage::displayOutput("LookUp3",width='600px',height='600px')
                ))
     ),
     
@@ -243,10 +235,7 @@ ui = fluidPage(
                       )),
                column(6, align='center',
                       br(),
-                      imageOutput("LookUp4",height=600, width=600, inline=F),
-                      br(),
-                      radioButtons("zoom4", label = "Zoom %",inline = T,
-                                   choices = c(100,200,400,800),selected = 100)
+                      EBImage::displayOutput("LookUp4",width='600px',height='600px')
                ))       
     ),
     
@@ -264,10 +253,7 @@ ui = fluidPage(
                ),
                column(6, align = 'center',
                       br(),
-                      imageOutput("LookUp5",height=600, width=600, inline=F),
-                      br(),
-                      radioButtons("zoom5", label = "Zoom %",inline = T,
-                                   choices = c(100,200,400,800),selected = 100)
+                      EBImage::displayOutput("LookUp5",width='600px',height='600px')
                )
              )
     )
