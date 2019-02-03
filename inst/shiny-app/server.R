@@ -196,6 +196,7 @@ server = function(input, output, session) {
       setProgress(message = "Images loaded!")
     })
     ThumbIm$I = c(lapply(1:5,function(x)Thumb),c(0,0))
+    Settings.status$text = ""; Settings.status$color = ""; Settings.status$Pass=FALSE
     TestImage$Im = NULL; TestImage$size=NULL; TestImage$status=1 #Reinitialize defaults when new images are loaded
   })
   
