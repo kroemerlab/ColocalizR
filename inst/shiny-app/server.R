@@ -20,30 +20,94 @@ server = function(input, output, session) {
   
   OS = Sys.info()[['sysname']]
   
-  #===================================================================================================================================================
-  ## Buttons activation logistics
+  #====================================================================================================================================================================================
+  ##Check if settings are valid : Basic error handling
+  
+  Settings.status = reactiveValues(text = "", color = "", Pass=FALSE)
+  
+  observe({
+    if(is.null(ConInf$Welldat)){
+      Settings.status$text="No images loaded"
+      Settings.status$color="#FF0000"
+      Pass=FALSE
+    }else{
+      if(!is.null(ConInf$Welldat)&length(unique((ConInf$Welldat)$Channel))<3 & (input$CellIm=='YES')){
+        Settings.status$text="Need nucleus for cell-by-cell analysis"
+        Settings.status$color="#FF0000"
+        Pass=FALSE
+      }else{
+        if(!is.null(ConInf$Welldat)&length(unique((ConInf$Welldat)$Channel))<3 & (input$BlueChannel!=3)){
+          Settings.status$text='Nucleus must be set to "3" when only two channels are present'
+          Settings.status$color="#FF0000" 
+          Pass=FALSE
+        }else{
+          if(input$MulPlates=='YES' & input$TimeCourse=='YES'){
+            Settings.status$text='Cannot run a timecourse analysis with multiple plates'
+            Settings.status$color="#FF0000"
+            Settings.status$Pass=FALSE
+          }else{
+            if(length(unique(c(input$BlueChannel,input$GreenChannel,input$RedChannel)))!=3){
+              Settings.status$text='The 3 channels cannot have the same number'
+              Settings.status$color="#FF0000"
+              Settings.status$Pass=FALSE
+            }else{
+              if(!is.null(ConInf$Welldat) & TestImage$status==0){
+                Settings.status$text="Images not found";Settings.status$color = "#FF0000"
+                Settings.status$Pass=FALSE
+              }else{
+                if(input$savefolder==0){
+                  Settings.status$text="Warning : No output folder selected"
+                  Settings.status$color="FF9900"
+                  Settings.status$Pass=TRUE
+                  
+                }else{
+                  Settings.status$text = "No obvious error detected";Settings.status$color = '#76EE00'
+                  Settings.status$Pass=TRUE
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
+  output$SetStatus = renderText({paste(paste0('<font color=\"',Settings.status$color,'\"><b>'), Settings.status$text, "</b></font>") })
+  
+  #====================================================================================================================================================================================
+  ## Buttons activation rules
   
   observe({
     if (is.null(ConInf$Welldat)){
       shinyjs::disable(id='ColSet')
+      sapply(c('Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge'),function(x)hideTab('tabs',x))
     }else{
       shinyjs::enable(id='ColSet')
+      sapply(c('Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge'),function(x)showTab('tabs',x))
+      if(!Settings.status$Pass){
+        sapply(c('Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge'),function(x)js$disableTab(x))
+      }else{
+        sapply(c('Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge'),function(x)js$enableTab(x))
+      }
+      if(length(unique((ConInf$Welldat)$Channel))<3){
+        js$disableTab("Nucleus")
+      }
     }
   })
   
-  #===================================================================================================================================================
+  
+  #====================================================================================================================================================================================
   ## PlateMap information
+  
   ConInf = reactiveValues(DrugID = data.frame(PlateID = rep('PlateID',15),WellID=paste0('Well',1:15), Drug = paste('Drug',c(1:15)),
                                               Conc = c(sample.int(100,size=15)),Unit = rep('uM',15)),
                           Welldat = NULL, DB=NULL)
-  Plates <- reactiveValues()
+  Plates = reactiveValues()
   TestImage = reactiveValues(Im = NULL, size = NULL, status = 1)
   
   output$PlateMap = renderDataTable(ConInf$DrugID, options = list(pageLength = 15,lengthMenu = c(15,20,25)))
   AdjIm = reactiveValues(Auto1 = c(0,1), Auto2 = c(0,1), Auto3 = c(0,1))
-  Settings.status = reactiveValues(text = "No error detected", color = '#76EE00')
-  #
   
+  #----------------------------------------------------------------
   ## Plate selection
   observe({
     if(input$UseSQL == 'YES'){
@@ -98,7 +162,8 @@ server = function(input, output, session) {
     updateTextInput(session, inputId = 'savefolder.str', value = Plates$resultsloc)
   })
   
-  ## Import images------------------------------------------------
+  #----------------------------------------------------------------
+  ##Import images
   
   observeEvent(input$ImpImg,{
     Plates$PlateIDs = input$SPlates
@@ -130,9 +195,12 @@ server = function(input, output, session) {
       })
       setProgress(message = "Images loaded!")
     })
+    ThumbIm$I = c(lapply(1:5,function(x)Thumb),c(0,0))
+    TestImage$Im = NULL; TestImage$size=NULL; TestImage$status=1 #Reinitialize defaults when new images are loaded
   })
   
-  ## Import plateMaps--------------------------------------------
+  #----------------------------------------------------------------
+  ## Import plateMaps
   
   observe({
     PM = data.frame()
@@ -151,8 +219,9 @@ server = function(input, output, session) {
       ConInf$DrugID <- PM
     }
   })
+  #----------------------------------------------------------------
+  #Initialize test conditions
   
-  #Initialize test conditions--------------------------------
   observe({
     output$SampPlate = renderUI({
       Plate1 = (ConInf$Welldat)$PlateID[1]
@@ -194,52 +263,11 @@ server = function(input, output, session) {
     })
   })
   
-  ##Check if settings are valid : Basic error handling
-  observe({
-    if(is.null(ConInf$Welldat)){
-      Settings.status$text="No images loaded"
-      Settings.status$color="#FF0000"
-    }else{
-      if(!is.null(ConInf$Welldat)&length(unique((ConInf$Welldat)$Channel))<3 & (input$CellIm=='YES')){
-        Settings.status$text="Need nucleus for cell-by-cell analysis"
-        Settings.status$color="#FF0000"
-      }else{
-        if(!is.null(ConInf$Welldat)&length(unique((ConInf$Welldat)$Channel))<3 & (input$BlueChannel!=3)){
-          Settings.status$text='Nucleus must be set to "3" when only two channels are present'
-          Settings.status$color="#FF0000"  
-        }else{
-          if(input$MulPlates=='YES' & input$TimeCourse=='YES'){
-            Settings.status$text='Cannot run a timecourse analysis with multiple plates'
-            Settings.status$color="#FF0000"   
-          }else{
-            if(length(unique(c(input$BlueChannel,input$GreenChannel,input$RedChannel)))!=3){
-              Settings.status$text='The 3 channels cannot have the same number'
-              Settings.status$color="#FF0000" 
-            }else{
-              if(!is.null(ConInf$Welldat) & TestImage$status==0){
-                Settings.status$text = "Images not found";Settings.status$color = "#FF0000"
-              }else{
-                if(input$savefolder==0){
-                  Settings.status$text="Warning : No output folder selected"
-                  Settings.status$color="FF9900"
-                }else{
-                  Settings.status$text = "No obvious error detected";Settings.status$color = '#76EE00'
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  })
-  output$SetStatus = renderText({paste(paste0('<font color=\"',Settings.status$color,'\"><b>'), Settings.status$text, "</b></font>") })
-  #
-  
   ##Initialize image signal ranges
   sapply(1:3,function(x)eval(parse(text=sprintf("output$hRm%d = renderUI({
     sliderInput('Rm%d', 'Adjust image', min=0, max=1, step=0.01, value=AdjIm$Auto%d)})",x,x,x))))
   
-  #==========================================================================================================================================================
+  #====================================================================================================================================================================================
   ## Image display for testing channel parameters
   
   Thumb = readImage('Thumb.jpg')
@@ -254,6 +282,8 @@ server = function(input, output, session) {
       return()
     }else{
       invisible(sapply(c("button","input"), function(x) shinyjs::disable(selector = x)))
+      sapply(c('Plate_information','Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge'),function(x)js$disableTab(x))
+      
       withProgress({
         setProgress(message='Segmenting images...')
         isolate({
@@ -269,11 +299,12 @@ server = function(input, output, session) {
       })
     }
     invisible(sapply(c("button","input"), function(x) shinyjs::enable(selector = x)))
+    sapply(c('Plate_information','Cytoplasm','Compartment_1','Compartment_2','Merge'),function(x)js$enableTab(x))
+    if(length(unique((ConInf$Welldat)$Channel))>2){js$enableTab('Nucleus')}
   })
   #
   observe({
-    sapply(1:5,function(x)eval(parse(text=sprintf("output$LookUp%d <-renderDisplay({
-          display(ThumbIm$I[[%d]])})",x,x))))
+    sapply(1:5,function(x)eval(parse(text=sprintf("output$LookUp%d <-renderDisplay({if(is.array(ThumbIm$I[[%d]]))display(ThumbIm$I[[%d]])})",x,x,x))))
   })
   
   ## Give an idea of PCC/SOC

@@ -144,7 +144,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       ##------------------------------------------------- 
       #Let's get uncleaned masks
       
-      TOP = whiteTopHat(LOG,makeBrush(TopSize[i],'disc'))
+      TOP = whiteTopHat(MorphR::LowPass(LOG),makeBrush(TopSize[i],'disc'))
       TOP[which(TOP<0)]=0
       TOP = MetaxpR::Normalize(TOP)
       
