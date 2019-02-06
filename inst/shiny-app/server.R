@@ -272,7 +272,7 @@ server = function(input, output, session) {
   ## Image display for testing channel parameters
   
   Thumb = readImage('Thumb.jpg')
-  ThumbIm = reactiveValues(I = c(lapply(1:5,function(x)Thumb),c(PCC=0,SOC=0)))
+  ThumbIm = reactiveValues(I = c(lapply(1:5,function(x)Thumb),c(0,0)))
   #
   
   observeEvent(input$Test1 | input$Test2 | input$Test3 | input$Test4, {
@@ -308,14 +308,14 @@ server = function(input, output, session) {
   mytabs = c('Plate_information','Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge')
   sapply(1:5,function(x)eval(parse(text=sprintf("output$LookUp%d <-renderDisplay({c(input$Test1,input$Test2,input$Test3,input$Test4)
                                                 withProgress(message = 'Actualizing...',{
-                                                sapply(setdiff(c('Plate_information','Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge'),input$tabs),function(tab)js$disableTab(tab))
-                                                h=display(ThumbIm$I[[%d]]);sapply(setdiff(c('Plate_information','Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge'),input$tabs),function(tab)js$enableTab(tab))
+                                                isolate({sapply(setdiff(mytabs,input$tabs),function(tab)js$disableTab(tab))})
+                                                h=display(ThumbIm$I[[%d]]);isolate({sapply(setdiff(mytabs,input$tabs),function(tab)js$enableTab(tab))})
                                                 return(h)})
                                                 })",x,x))))
 
   ## Give an idea of PCC/SOC
   output$SampPCC = renderTable({
-    data.frame(PCC = round(ThumbIm$I[['PCC']],2), SOC = round(ThumbIm$I[['SOC']],2))
+    data.frame(PCC = round(ThumbIm$I[[6]],2), SOC = round(ThumbIm$I[[7]],2))
   })
   
   #===============================================================================================================================================================
