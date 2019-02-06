@@ -65,8 +65,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
     IP = as.character(Im$MyIm[which(Im$Channel==paste0('w',i))])
     if(length(IP) == 1){
       RAW = suppressWarnings({readImage(IP)});rm(IP)
-      #--------------------------------------------------------------------------------------------------------------
-      
+      #--------------------------------------------------
       if(any(getRange)){
         if(getRange[i]){
           AutoRange = c(AutoRange, list(AutoAdjust(RAW,step=0.001)))
@@ -148,7 +147,6 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       TOP[which(TOP<0)]=0
       TOP = MetaxpR::Normalize(TOP)
       
-      
       if(autoSeg[i]){
         C = TOP>(otsu(TOP))
       }else{
@@ -180,7 +178,6 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
   #
   for(i in 1:nch){
     MList[[i]] = MList[[i]] & CMask
-    MList[[i]] = round(gblur(MList[[i]],0.6,3)) # Remove lonely pixels
   }
   
   #COLOC
@@ -230,7 +227,6 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
       
       testR = paintObjects(OMask,paintObjects(MList[[Red]],rgbImage(red=(MetaxpR::Normalize(IMList[[Red]],inputRange=Rm3))),col = 'green'),col='yellow')
       testG = paintObjects(OMask,paintObjects(MList[[Green]],rgbImage(green=(MetaxpR::Normalize(IMList[[Green]],inputRange=Rm2))), col = 'red'),col = 'yellow')
-      
       
       if(Nuc.rm){
         testB = paintObjects(NMask,rgbImage(blue=(MetaxpR::Normalize(IMList[[Blue]],inputRange=Rm1))), col = 'yellow')
@@ -303,7 +299,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
                                                             col = c('red', 'dark red'), opac = c(1,0.3), thick = F), col = c('green', 'darkgreen'), opac = c(1,0.3), thick = F)
       }
     }
-    return(list(testB, testC, testG, testR, testRGB, Rm1, Rm2, Rm3, PCC, SOC))
+    return(list(CB=testB, CC=testC, CG=testG, CR=testR, CRGB=testRGB, RB=Rm1,RG=Rm2,RR=Rm3,PCC=PCC,SOC=SOC))
     
   }else{
     

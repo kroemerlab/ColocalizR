@@ -3,6 +3,6 @@
 
 Launcher = function(x, ...){
 
-  shiny::runApp(appDir = system.file("shiny-app",package='ColocalizR'),...)
+  shiny::runApp(appDir = system.file("shiny-app",package='ColocalizR'),launch.browser=T,...)
   
 }

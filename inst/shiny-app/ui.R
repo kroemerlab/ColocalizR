@@ -28,7 +28,6 @@ ui = fluidPage(
   shinyjs::extendShinyjs(text = jsdis),
   shinyjs::inlineCSS(cssdis),
   includeCSS("www/bootstrap.css"),
-  includeCSS("www/Progress.css"),
   titlePanel("ColocalizR"),
   
   tabsetPanel(id='tabs',
@@ -73,7 +72,7 @@ ui = fluidPage(
                                          )),
                                 fluidRow(align='center',
                                          br(),
-                                         (actionButton("ImpImg", label='IMPORT PLATE INFO',style='padding:10px; font-size:125%;align:center',width=200)),
+                                         (actionButton("ImpImg", label='IMPORT PLATE INFO',style='padding:10px; font-size:125%;align:center',width="100%")),
                                          br(),br(),br(),
                                          htmlOutput("SetStatus", inline=F)
                                 )
@@ -119,7 +118,7 @@ ui = fluidPage(
                                     )))
                                 ,id='ColSet'),
                          
-                         column(2,align='left', offset = 0,
+                         column(2,align='center', offset = 0,
                                 h3('Output Settings'),
                                 wellPanel(
                                   strong('Save results in :'),
@@ -127,21 +126,23 @@ ui = fluidPage(
                                   actionButton("savefolder", label = 'Select folder'),
                                   textInput("savefolder.str", label ='', value = paste0(getwd(),'/Results'))
                                   ,id='OutSet'),
-                                br(),
-                                h3('Test Settings'),
+                                br(),br(),br(),
+                                h3('Hardware Settings'),
+                                wellPanel(
+                                  numericInput("UsedCores","CPU threads:",value=parallel::detectCores()),
+                                  actionButton("CPU.OP", label='Optimize',style='padding:10px; font-size:125%;align:center',width="100%")
+                                )
+                         ),
+
+                         column(2,align='left', offset = 0,
+                                h3(id='Testid','Test Settings'),
                                 wellPanel(   
                                   uiOutput("SampPlate"),
                                   uiOutput("SampTime"),
                                   uiOutput("SampWell"),
                                   uiOutput("SampSite")
                                   ,id='TestSet')
-                         ),
-                         column(2,align='left', offset = 0,
-                                h3('Hardware Settings'),
-                                wellPanel(
-                                  numericInput("UsedCores","CPU threads:",value=parallel::detectCores()),
-                                  actionButton("CPU.OP", label='Optimize',style='padding:10px; font-size:125%;align:center',width=200)
-                                )),
+                                ),
                          
                          conditionalPanel(
                            condition = "input.PLATEMAP == 'YES'",

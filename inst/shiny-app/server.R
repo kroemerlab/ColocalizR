@@ -78,10 +78,10 @@ server = function(input, output, session) {
   
   observe({
     if (is.null(ConInf$Welldat)){
-      shinyjs::disable(id='ColSet')
+      shinyjs::disable(id='ColSet');shinyjs::hide(id='Testid');shinyjs::hide(id='TestSet')
       sapply(c('Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge'),function(x)hideTab('tabs',x))
     }else{
-      shinyjs::enable(id='ColSet')
+      shinyjs::enable(id='ColSet');shinyjs::show(id='Testid');shinyjs::show(id='TestSet')
       sapply(c('Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge'),function(x)showTab('tabs',x))
       if(!Settings.status$Pass){
         sapply(c('Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge'),function(x)js$disableTab(x))
@@ -97,7 +97,7 @@ server = function(input, output, session) {
   
   #====================================================================================================================================================================================
   ## PlateMap information
-  
+
   ConInf = reactiveValues(DrugID = data.frame(PlateID = rep('PlateID',15),WellID=paste0('Well',1:15), Drug = paste('Drug',c(1:15)),
                                               Conc = c(sample.int(100,size=15)),Unit = rep('uM',15)),
                           Welldat = NULL, DB=NULL)
@@ -118,7 +118,7 @@ server = function(input, output, session) {
                          multiple = F, selected=tail(names(odbcDataSources(type='system')),n=1))
         })
         observeEvent(input$SERVER,{
-          ConInf$DB = GetMDCInfo(input$SERVER,Unix.diff = c('//H','/media/H')) #Unix.diff can be replaced with your own config
+          ConInf$DB = GetMDCInfo(input$SERVER,Unix.diff = c('//Hcs-Screen10','/media/Hcs-screen10')) #Unix.diff can be replaced with your own config
           output$PlateIDs = renderUI({
             Plates = unique(as.numeric((ConInf$DB)$PlateID))
             selectizeInput("SPlates","Plate selection :", choices = Plates[order(Plates, decreasing = T)], multiple = input$MulPlates=='YES', selected=Plates[length(Plates[!is.na(Plates)])])
@@ -272,7 +272,7 @@ server = function(input, output, session) {
   ## Image display for testing channel parameters
   
   Thumb = readImage('Thumb.jpg')
-  ThumbIm = reactiveValues(I = c(lapply(1:5,function(x)Thumb),c(0,0)))
+  ThumbIm = reactiveValues(I = c(lapply(1:5,function(x)Thumb),c(PCC=0,SOC=0)))
   #
   
   observeEvent(input$Test1 | input$Test2 | input$Test3 | input$Test4, {
@@ -293,8 +293,8 @@ server = function(input, output, session) {
                             NucWindow = as.numeric(input$NucWindow), SegCyto.met = input$SegCytoMet, CytoOFF = input$CytoOFF, CytoWindow = as.numeric(input$CytoWindow), FullIm = T, TEST=T, getCell = (input$CellIm == 'YES'), adj.step1 = input$adj.step1, adj.step2 = input$adj.step2, adj.step3 = input$adj.step3, 
                             adj = as.numeric(input$adj), getRange = c((input$AutoAd1=='YES'),(input$AutoAd2=='YES'),(input$AutoAd3=='YES')),Rm1 = input$Rm1, Rm2 = input$Rm2, Rm3= input$Rm3)
         })
-        ThumbIm$I = TempI[c(1:5,9:10)]
-        AdjIm$Auto1 = TempI[[6]];AdjIm$Auto2 = TempI[[7]];AdjIm$Auto3 = TempI[[8]]
+        ThumbIm$I = TempI[c('CB','CC','CG','CR','CRGB','PCC','SOC')];AdjIm$Auto1=TempI[['RB']];AdjIm$Auto2=TempI[['RG']];AdjIm$Auto3=TempI[['RR']]
+        rm(TempI);gc()
         #
         setProgress(message='Done !')
       })
@@ -303,14 +303,19 @@ server = function(input, output, session) {
     sapply(c('Plate_information','Cytoplasm','Compartment_1','Compartment_2','Merge'),function(x)js$enableTab(x))
     if(length(unique((ConInf$Welldat)$Channel))>2){js$enableTab('Nucleus')}
   })
-  #
-  observe({
-    sapply(1:5,function(x)eval(parse(text=sprintf("output$LookUp%d <-renderDisplay({if(is.array(ThumbIm$I[[%d]]))display(ThumbIm$I[[%d]])})",x,x,x))))
-  })
   
+  ##Update image view
+  mytabs = c('Plate_information','Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge')
+  sapply(1:5,function(x)eval(parse(text=sprintf("output$LookUp%d <-renderDisplay({c(input$Test1,input$Test2,input$Test3,input$Test4)
+                                                withProgress(message = 'Actualizing...',{
+                                                sapply(setdiff(c('Plate_information','Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge'),input$tabs),function(tab)js$disableTab(tab))
+                                                h=display(ThumbIm$I[[%d]]);sapply(setdiff(c('Plate_information','Nucleus','Cytoplasm','Compartment_1','Compartment_2','Merge'),input$tabs),function(tab)js$enableTab(tab))
+                                                return(h)})
+                                                })",x,x))))
+
   ## Give an idea of PCC/SOC
   output$SampPCC = renderTable({
-    data.frame(PCC = round(ThumbIm$I[[6]],2), SOC = round(ThumbIm$I[[7]],2))
+    data.frame(PCC = round(ThumbIm$I[['PCC']],2), SOC = round(ThumbIm$I[['SOC']],2))
   })
   
   #===============================================================================================================================================================
