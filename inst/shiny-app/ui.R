@@ -185,8 +185,11 @@ ui = fluidPage(
                          
                          column(6, align='center',
                                 br(),
-                                EBImage::displayOutput("LookUp1",width='600px',height='600px')
+                                EBImage::displayOutput("LookUp1",width='600px',height='600px'),
+                                br(),br(),
+                                htmlOutput("NucStatus", inline=F)
                          ))
+                       
               ),
               
               tabPanel("Cytoplasm",
@@ -213,8 +216,11 @@ ui = fluidPage(
                          
                          column(6, align='center',
                                 br(),
-                                EBImage::displayOutput("LookUp2",width='600px',height='600px')
+                                EBImage::displayOutput("LookUp2",width='600px',height='600px'),
+                                br(),br(),
+                                htmlOutput("CytoStatus", inline=F)
                          ))
+                       
               ),
               
               tabPanel(title="Compartment 1",
@@ -237,7 +243,9 @@ ui = fluidPage(
                                 )),
                          column(6, align='center',
                                 br(),
-                                EBImage::displayOutput("LookUp3",width='600px',height='600px')
+                                EBImage::displayOutput("LookUp3",width='600px',height='600px'),
+                                br(),br(),
+                                htmlOutput("Cpt1Status", inline=F)
                          ))
               ),
               
@@ -261,8 +269,10 @@ ui = fluidPage(
                                 )),
                          column(6, align='center',
                                 br(),
-                                EBImage::displayOutput("LookUp4",width='600px',height='600px')
-                         ))       
+                                EBImage::displayOutput("LookUp4",width='600px',height='600px'),
+                                br(),br(),
+                                htmlOutput("Cpt2Status", inline=F)
+                         ))
               ),
               
               tabPanel("Merge",align='center',

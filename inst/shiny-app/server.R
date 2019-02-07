@@ -24,54 +24,214 @@ server = function(input, output, session) {
   ##Check if settings are valid : Basic error handling
   
   Settings.status = reactiveValues(text = "", color = "", Pass=FALSE)
+  Nuc.settings = reactiveValues(text = "", color = "", Pass=FALSE)
+  Cyto.settings = reactiveValues(text = "", color = "", Pass=FALSE)
+  Cpt1.settings = reactiveValues(text = "", color = "", Pass=FALSE)
+  Cpt2.settings = reactiveValues(text = "", color = "", Pass=FALSE)
   
   observe({
-    if(is.null(ConInf$Welldat)){
-      Settings.status$text="No images loaded"
-      Settings.status$color="#FF0000"
-      Pass=FALSE
-    }else{
-      if(!is.null(ConInf$Welldat)&length(unique((ConInf$Welldat)$Channel))<3 & (input$CellIm=='YES')){
-        Settings.status$text="Need nucleus for cell-by-cell analysis"
+    try({
+      if(is.null(ConInf$Welldat)){
+        Settings.status$text="No images loaded"
         Settings.status$color="#FF0000"
         Pass=FALSE
       }else{
-        if(!is.null(ConInf$Welldat)&length(unique((ConInf$Welldat)$Channel))<3 & (input$BlueChannel!=3)){
-          Settings.status$text='Nucleus must be set to "3" when only two channels are present'
-          Settings.status$color="#FF0000" 
+        if(!is.null(ConInf$Welldat)&length(unique((ConInf$Welldat)$Channel))<3 & (input$CellIm=='YES')){
+          Settings.status$text="Need nucleus for cell-by-cell analysis"
+          Settings.status$color="#FF0000"
           Pass=FALSE
         }else{
-          if(input$MulPlates=='YES' & input$TimeCourse=='YES'){
-            Settings.status$text='Cannot run a timecourse analysis with multiple plates'
-            Settings.status$color="#FF0000"
-            Settings.status$Pass=FALSE
+          if(!is.null(ConInf$Welldat)&length(unique((ConInf$Welldat)$Channel))<3 & (input$BlueChannel!=3)){
+            Settings.status$text='Nucleus must be set to "3" when only two channels are present'
+            Settings.status$color="#FF0000" 
+            Pass=FALSE
           }else{
-            if(length(unique(c(input$BlueChannel,input$GreenChannel,input$RedChannel)))!=3){
-              Settings.status$text='The 3 channels cannot have the same number'
+            if(input$MulPlates=='YES' & input$TimeCourse=='YES'){
+              Settings.status$text='Cannot run a timecourse analysis with multiple plates'
               Settings.status$color="#FF0000"
               Settings.status$Pass=FALSE
             }else{
-              if(!is.null(ConInf$Welldat) & TestImage$status==0){
-                Settings.status$text="Images not found";Settings.status$color = "#FF0000"
+              if(length(unique(c(input$BlueChannel,input$GreenChannel,input$RedChannel)))!=3){
+                Settings.status$text='The 3 channels cannot have the same number'
+                Settings.status$color="#FF0000"
                 Settings.status$Pass=FALSE
               }else{
-                if(input$savefolder==0){
-                  Settings.status$text="Warning : No output folder selected"
-                  Settings.status$color="FF9900"
-                  Settings.status$Pass=TRUE
-                  
+                if(!is.null(ConInf$Welldat) & TestImage$status==0){
+                  Settings.status$text="Images not found";Settings.status$color = "#FF0000"
+                  Settings.status$Pass=FALSE
                 }else{
-                  Settings.status$text = "No obvious error detected";Settings.status$color = '#76EE00'
-                  Settings.status$Pass=TRUE
+                  if(input$savefolder==0){
+                    Settings.status$text="Warning : No output folder selected"
+                    Settings.status$color="FF9900"
+                    Settings.status$Pass=TRUE
+                    
+                  }else{
+                    Settings.status$text = "No obvious error detected";Settings.status$color = '#76EE00'
+                    Settings.status$Pass=TRUE
+                  }
                 }
               }
             }
           }
         }
       }
-    }
+      if(!is.null(TestImage$Im) & length(TestImage$Im)!=0){
+        if(any(is.na(as.numeric(c(input$NucWindow, input$w1OFF, input$adj.step1, input$RO.size))))){
+          Nuc.settings$text="Numeric input needed"
+          Nuc.settings$color="#FF0000"
+          Nuc.settings$Pass=FALSE
+        }else{
+          if(as.numeric(input$NucWindow)==0){
+            Nuc.settings$text="Window size should be more than 0"
+            Nuc.settings$color="#FF0000"
+            Nuc.settings$Pass=FALSE
+          }else{
+            if(any(!is.na(unlist(TestImage$size)))){
+              if(1.5*as.numeric(input$NucWindow) > min(na.omit(unlist(TestImage$size)))){
+                Nuc.settings$text="Window size should be smaller"
+                Nuc.settings$color="#FF0000"
+                Nuc.settings$Pass=FALSE
+              }else{
+                if(input$w1OFF > 2 | input$w1OFF < -2){
+                  Nuc.settings$text="Offset should be between -2 and 2"
+                  Nuc.settings$color="FF9900"
+                  Nuc.settings$Pass=TRUE
+                }else{
+                  if(input$adj.step1 > 6 | input$adj.step1 < 2){
+                    Nuc.settings$text="Extrema smoothing coefficient should be between 2 and 6"
+                    Nuc.settings$color="FF9900"
+                    Nuc.settings$Pass=TRUE
+                  }else{
+                    if(input$Denoising=='YES'){
+                      if(as.numeric(input$RO.size)%%2==0){
+                        Nuc.settings$text="Size of structuring element should be an odd number"
+                        Nuc.settings$color="FF9900"
+                        Nuc.settings$Pass=TRUE
+                      }else{
+                        Nuc.settings$text = "No error detected";Nuc.settings$color = '#76EE00'
+                        Nuc.settings$Pass=TRUE
+                      }
+                    }else{
+                      Nuc.settings$text = "No error detected";Nuc.settings$color = '#76EE00'
+                      Nuc.settings$Pass=TRUE
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      if(!is.null(TestImage$Im) & length(TestImage$Im)!=0){
+        if(any(is.na(as.numeric(c(input$CytoWindow, input$CytoOFF, input$adj))))){
+          Cyto.settings$text="Numeric input needed"
+          Cyto.settings$color="#FF0000"
+          Cyto.settings$Pass=FALSE
+        }else{
+          if(as.numeric(input$CytoWindow)==0){
+            Cyto.settings$text="Window size should be more than 0"
+            Cyto.settings$color="#FF0000"
+            Cyto.settings$Pass=FALSE
+          }else{
+            if(any(!is.na(unlist(TestImage$size)))){
+              if(1.5*as.numeric(input$CytoWindow)> min(na.omit(unlist(TestImage$size)))){
+                Cyto.settings$text="Window size should be smaller"
+                Cyto.settings$color="#FF0000"
+                Cyto.settings$Pass=FALSE
+              }else{
+                if(input$CytoOFF > 2 | input$CytoOFF < -2){
+                  Cyto.settings$text="Offset should be between -2 and 2"
+                  Cyto.settings$color="FF9900"
+                  Cyto.settings$Pass=TRUE
+                  }else{
+                    if(input$adj > 2 | input$adj < -2){
+                      Cyto.settings$text="Adjustement parameter should be between -2 and 2"
+                      Cyto.settings$color="FF9900"
+                      Cyto.settings$Pass=TRUE
+                    }else{
+                      Cyto.settings$text = "No error detected";Cyto.settings$color = '#76EE00'
+                      Cyto.settings$Pass=TRUE
+                    }
+                  }
+                }
+            }
+          }
+        }
+      }
+      if(!is.null(TestImage$Im) & length(TestImage$Im)!=0){
+        if(any(is.na(as.numeric(c(input$TopSize2, input$w2OFF, input$adj.step2))))){
+          Cpt1.settings$text="Numeric input needed"
+          Cpt1.settings$color="#FF0000"
+          Cpt1.settings$Pass=FALSE
+        }else{
+          if(input$adj.step2 > 6 | input$adj.step2 < 2){
+            Cpt1.settings$text="Extrema smoothing coefficient should be between 2 and 6"
+            Cpt1.settings$color="FF9900"
+            Cpt1.settings$Pass=TRUE
+          }else{
+            if(as.numeric(input$TopSize2)%%2==0){
+              Cpt1.settings$text="Size of top hat filter should be an odd number"
+              Cpt1.settings$color="FF9900"
+              Cpt1.settings$Pass=TRUE
+            }else{
+              if(input$auto2 == 'NO'){
+                if(input$w2OFF > 2 | input$w2OFF < -2){
+                  Cpt1.settings$text="Offset should be between -2 and 2"
+                  Cpt1.settings$color="FF9900"
+                  Cpt1.settings$Pass=TRUE
+                }else{
+                  Cpt1.settings$text = "No error detected";Cpt1.settings$color = '#76EE00'
+                  Cpt1.settings$Pass=TRUE
+                }
+              }else{
+                Cpt1.settings$text = "No error detected";Cpt1.settings$color = '#76EE00'
+                Cpt1.settings$Pass=TRUE
+              }
+            }
+          }
+        }
+      }
+      if(!is.null(TestImage$Im) & length(TestImage$Im)!=0){
+        if(any(is.na(as.numeric(c(input$TopSize3, input$w3OFF, input$adj.step3))))){
+          Cpt2.settings$text="Numeric input needed"
+          Cpt2.settings$color="#FF0000"
+          Cpt2.settings$Pass=FALSE
+        }else{
+          if(input$adj.step3 > 6 | input$adj.step3 < 2){
+            Cpt2.settings$text="Extrema smoothing coefficient should be between 2 and 6"
+            Cpt2.settings$color="FF9900"
+            Cpt2.settings$Pass=TRUE
+          }else{
+            if(as.numeric(input$TopSize3)%%2==0){
+              Cpt2.settings$text="Size of top hat filter should be an odd number"
+              Cpt2.settings$color="FF9900"
+              Cpt2.settingsPass=TRUE
+            }else{
+              if(input$auto3 == 'NO'){
+                if(input$w3OFF > 2 | input$w3OFF < -2){
+                  Cpt2.settings$text="Offset should be between -2 and 2"
+                  Cpt2.settings$color="FF9900"
+                  Cpt2.settingsPass=TRUE
+                }else{
+                  Cpt2.settings$text = "No error detected";Cpt2.settings$color = '#76EE00'
+                  Cpt2.settings$Pass=TRUE
+                }
+              }else{
+                Cpt2.settings$text = "No error detected";Cpt2.settings$color = '#76EE00'
+                Cpt2.settings$Pass=TRUE
+              }
+            }
+          }
+        }
+      }
+    })
   })
+  
   output$SetStatus = renderText({paste(paste0('<font color=\"',Settings.status$color,'\"><b>'), Settings.status$text, "</b></font>") })
+  output$NucStatus = renderText({paste(paste0('<font color=\"',Nuc.settings$color,'\"><b>'), Nuc.settings$text, "</b></font>") })
+  output$CytoStatus = renderText({paste(paste0('<font color=\"',Cyto.settings$color,'\"><b>'), Cyto.settings$text, "</b></font>") })
+  output$Cpt1Status = renderText({paste(paste0('<font color=\"',Cpt1.settings$color,'\"><b>'), Cpt1.settings$text, "</b></font>") })
+  output$Cpt2Status = renderText({paste(paste0('<font color=\"',Cpt2.settings$color,'\"><b>'), Cpt2.settings$text, "</b></font>") })
   
   #====================================================================================================================================================================================
   ## Buttons activation rules
@@ -90,6 +250,11 @@ server = function(input, output, session) {
       }
       if(length(unique((ConInf$Welldat)$Channel))<3){
         js$disableTab("Nucleus")
+      }
+      if(!Nuc.settings$Pass|!Cyto.settings$Pass|!Cpt1.settings$Pass|!Cpt2.settings$Pass){
+        sapply(paste0('Test',1:4), function(x) shinyjs::disable(id = x))
+      }else{
+        sapply(paste0('Test',1:4), function(x) shinyjs::enable(id = x))
       }
     }
   })
@@ -245,7 +410,7 @@ server = function(input, output, session) {
     if(!is.null(ConInf$Welldat)){
       TestImage$Im = as.character(ConInf$Welldat$MyIm[which(ConInf$Welldat$PlateID == input$SampPlate1 & ConInf$Welldat$TimePoint ==  input$SampTime1 &
                                                               ConInf$Welldat$Well == input$SampWell1 & ConInf$Welldat$Site == input$SampSite1 & ConInf$Welldat$Channel == 'w1')])
-      
+      try({TestImage$size = imager::iminfo(TestImage$Im)[c('width','height')] })
       if(length(TestImage$Im)==0){
         TestImage$status = 0
       }else{
