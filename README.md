@@ -66,6 +66,6 @@ devtools::install_github("kroemerlab/ColocalizR")
 ```
 ## Application
 Once all is installed, you can run this line in the console to download and launch the app. 
-```library(ColocalizR);Launcher(launch.browser=T)``` 
+```library(ColocalizR);Launcher()``` 
 
 For more informations, please refer to the [User Manual](https://github.com/kroemerlab/ColocalizR/blob/master/ColocalizR%20-%20User%20Manual.pdf).
