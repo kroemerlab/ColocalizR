@@ -4,7 +4,7 @@ Date: 2017-07-07
 Title: ColocalizR
 Description: ColocalizR is an R-based image-analysis application developed for the quantification of co-localization in high-throughput, on a cell-by-cell basis.
 Imports:
-        RODBC,EBImage,MetaxpR,MorphR,doParallel,doSNOW,foreach,tiff,reshape2,rChoiceDialogs,gtools,flowCore,V8,shiny,shinyjs
+        RODBC,EBImage,imager,MetaxpR,MorphR,doParallel,doSNOW,foreach,tiff,reshape2,rChoiceDialogs,gtools,flowCore,V8,shiny,shinyjs
 Author: Allan Sauvat <allan.sauvat@gustaveroussy.fr>
 Maintainer: Allan Sauvat <allan.sauvat@gustaveroussy.fr>
 License: GPL (> 2)
