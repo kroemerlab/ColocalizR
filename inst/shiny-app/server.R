@@ -283,7 +283,7 @@ server = function(input, output, session) {
                          multiple = F, selected=tail(names(odbcDataSources(type='system')),n=1))
         })
         observeEvent(input$SERVER,{
-          ConInf$DB = GetMDCInfo(input$SERVER,Unix.diff = c('//Hcs-Screen10','/media/Hcs-screen10')) #Unix.diff can be replaced with your own config
+          ConInf$DB = GetMDCInfo(input$SERVER,Unix.diff = c('//H','/media/H')) #Unix.diff can be replaced with your own config
           output$PlateIDs = renderUI({
             Plates = unique(as.numeric((ConInf$DB)$PlateID))
             selectizeInput("SPlates","Plate selection :", choices = Plates[order(Plates, decreasing = T)], multiple = input$MulPlates=='YES', selected=Plates[length(Plates[!is.na(Plates)])])
