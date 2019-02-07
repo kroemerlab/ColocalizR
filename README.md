@@ -63,6 +63,11 @@ You have then to install some packages before running the application. To do so,
 ```R
 install.packages(pkgs=c('rJava','devtools'), repos = "http://cloud.r-project.org")
 
+# For R versions < 3.5
+source("http://bioconductor.org/biocLite.R")
+biocLite(pkgs=c('EBImage','flowCore'), ask=F)
+
+# For R versions >= 3.5
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 BiocManager::install(c("EBImage","flowCore"), version = "3.8")
