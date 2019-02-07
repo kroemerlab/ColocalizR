@@ -62,7 +62,12 @@ sudo apt install libcurl4-openssl-dev libssl-dev unixodbc unixodbc-dev libtiff-d
 You have then to install some packages before running the application. To do so, open RStudio and copy/paste the lines below in the console :
 ```R
 install.packages(pkgs=c('rJava','devtools'), repos = "http://cloud.r-project.org")
-devtools::install_github("kroemerlab/ColocalizR")
+
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install(c("EBImage","flowCore"), version = "3.8")
+
+devtools::install_github(c("kroemerlab/MetaxpR", "kroemerlab/MorphR", "kroemerlab/ColocalizR"))
 ```
 ## Application
 Once all is installed, you can run this line in the console to download and launch the app. 
