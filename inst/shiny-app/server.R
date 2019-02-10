@@ -31,6 +31,7 @@ server = function(input, output, session) {
   
   observe({
     try({
+      #Settings error handling------------------------------------------------------------------------------
       if(is.null(ConInf$Welldat)){
         Settings.status$text="No images loaded"
         Settings.status$color="#FF0000"
@@ -75,6 +76,7 @@ server = function(input, output, session) {
           }
         }
       }
+      #Nucleus tab error handling---------------------------------------------------------------------------
       if(!is.null(TestImage$Im) & length(TestImage$Im)!=0){
         if(any(is.na(as.numeric(c(input$NucWindow, input$w1OFF, input$adj.step1, input$RO.size))))){
           Nuc.settings$text="Numeric input needed"
@@ -82,29 +84,29 @@ server = function(input, output, session) {
           Nuc.settings$Pass=FALSE
         }else{
           if(as.numeric(input$NucWindow)==0){
-            Nuc.settings$text="Window size should be more than 0"
+            Nuc.settings$text="Window size value must be greater than 0"
             Nuc.settings$color="#FF0000"
             Nuc.settings$Pass=FALSE
           }else{
             if(any(!is.na(unlist(TestImage$size)))){
               if(1.5*as.numeric(input$NucWindow) > min(na.omit(unlist(TestImage$size)))){
-                Nuc.settings$text="Window size should be smaller"
+                Nuc.settings$text="Window size too big"
                 Nuc.settings$color="#FF0000"
                 Nuc.settings$Pass=FALSE
               }else{
-                if(input$w1OFF > 2 | input$w1OFF < -2){
-                  Nuc.settings$text="Offset should be between -2 and 2"
+                if(input$w1OFF > 1 | input$w1OFF < 0){
+                  Nuc.settings$text="Offset value must be between 0 and 1"
                   Nuc.settings$color="FF9900"
                   Nuc.settings$Pass=TRUE
                 }else{
                   if(input$adj.step1 > 6 | input$adj.step1 < 2){
-                    Nuc.settings$text="Extrema smoothing coefficient should be between 2 and 6"
+                    Nuc.settings$text="Extrema smoothing coefficient value must be between 2 and 6"
                     Nuc.settings$color="FF9900"
                     Nuc.settings$Pass=TRUE
                   }else{
                     if(input$Denoising=='YES'){
                       if(as.numeric(input$RO.size)%%2==0){
-                        Nuc.settings$text="Size of structuring element should be an odd number"
+                        Nuc.settings$text="Structuring element size must be an odd number"
                         Nuc.settings$color="FF9900"
                         Nuc.settings$Pass=TRUE
                       }else{
@@ -122,6 +124,7 @@ server = function(input, output, session) {
           }
         }
       }
+      #Cytoplasm tab error handling------------------------------------------------------------------------
       if(!is.null(TestImage$Im) & length(TestImage$Im)!=0){
         if(any(is.na(as.numeric(c(input$CytoWindow, input$CytoOFF, input$adj))))){
           Cyto.settings$text="Numeric input needed"
@@ -129,23 +132,23 @@ server = function(input, output, session) {
           Cyto.settings$Pass=FALSE
         }else{
           if(as.numeric(input$CytoWindow)==0){
-            Cyto.settings$text="Window size should be more than 0"
+            Cyto.settings$text="Window size value must be greater than 0"
             Cyto.settings$color="#FF0000"
             Cyto.settings$Pass=FALSE
           }else{
             if(any(!is.na(unlist(TestImage$size)))){
               if(1.5*as.numeric(input$CytoWindow)> min(na.omit(unlist(TestImage$size)))){
-                Cyto.settings$text="Window size should be smaller"
+                Cyto.settings$text="Window size too big"
                 Cyto.settings$color="#FF0000"
                 Cyto.settings$Pass=FALSE
               }else{
-                if(input$CytoOFF > 2 | input$CytoOFF < -2){
-                  Cyto.settings$text="Offset should be between -2 and 2"
+                if(input$CytoOFF > 1 | input$CytoOFF < 0){
+                  Cyto.settings$text="Offset value must be between 0 and 1"
                   Cyto.settings$color="FF9900"
                   Cyto.settings$Pass=TRUE
                   }else{
-                    if(input$adj > 2 | input$adj < -2){
-                      Cyto.settings$text="Adjustement parameter should be between -2 and 2"
+                    if(input$adj > 0 | input$adj < 2){
+                      Cyto.settings$text="Adjustement coeeficient value must be between 0 and 2"
                       Cyto.settings$color="FF9900"
                       Cyto.settings$Pass=TRUE
                     }else{
@@ -158,6 +161,7 @@ server = function(input, output, session) {
           }
         }
       }
+      #Cpt1 tab error handling------------------------------------------------------------------------------
       if(!is.null(TestImage$Im) & length(TestImage$Im)!=0){
         if(any(is.na(as.numeric(c(input$TopSize2, input$w2OFF, input$adj.step2))))){
           Cpt1.settings$text="Numeric input needed"
@@ -165,18 +169,18 @@ server = function(input, output, session) {
           Cpt1.settings$Pass=FALSE
         }else{
           if(input$adj.step2 > 6 | input$adj.step2 < 2){
-            Cpt1.settings$text="Extrema smoothing coefficient should be between 2 and 6"
+            Cpt1.settings$text="Extrema smoothing coefficient value must be between 2 and 6"
             Cpt1.settings$color="FF9900"
             Cpt1.settings$Pass=TRUE
           }else{
             if(as.numeric(input$TopSize2)%%2==0){
-              Cpt1.settings$text="Size of top hat filter should be an odd number"
+              Cpt1.settings$text="Top hat filter size must be an odd number"
               Cpt1.settings$color="FF9900"
               Cpt1.settings$Pass=TRUE
             }else{
               if(input$auto2 == 'NO'){
-                if(input$w2OFF > 2 | input$w2OFF < -2){
-                  Cpt1.settings$text="Offset should be between -2 and 2"
+                if(input$w2OFF > 1 | input$w2OFF < 0){
+                  Cpt1.settings$text="Offset value should be between 0 and 1"
                   Cpt1.settings$color="FF9900"
                   Cpt1.settings$Pass=TRUE
                 }else{
@@ -191,6 +195,7 @@ server = function(input, output, session) {
           }
         }
       }
+      #Cpt2 tab error handling------------------------------------------------------------------------------
       if(!is.null(TestImage$Im) & length(TestImage$Im)!=0){
         if(any(is.na(as.numeric(c(input$TopSize3, input$w3OFF, input$adj.step3))))){
           Cpt2.settings$text="Numeric input needed"
@@ -198,18 +203,18 @@ server = function(input, output, session) {
           Cpt2.settings$Pass=FALSE
         }else{
           if(input$adj.step3 > 6 | input$adj.step3 < 2){
-            Cpt2.settings$text="Extrema smoothing coefficient should be between 2 and 6"
+            Cpt2.settings$text="Extrema smoothing coefficient value should be between 2 and 6"
             Cpt2.settings$color="FF9900"
             Cpt2.settings$Pass=TRUE
           }else{
             if(as.numeric(input$TopSize3)%%2==0){
-              Cpt2.settings$text="Size of top hat filter should be an odd number"
+              Cpt2.settings$text="Top hat filter size must be an odd number"
               Cpt2.settings$color="FF9900"
               Cpt2.settingsPass=TRUE
             }else{
               if(input$auto3 == 'NO'){
-                if(input$w3OFF > 2 | input$w3OFF < -2){
-                  Cpt2.settings$text="Offset should be between -2 and 2"
+                if(input$w3OFF > 1 | input$w3OFF < 0){
+                  Cpt2.settings$text="Offset value should be between 0 and 1"
                   Cpt2.settings$color="FF9900"
                   Cpt2.settingsPass=TRUE
                 }else{
@@ -410,7 +415,7 @@ server = function(input, output, session) {
     if(!is.null(ConInf$Welldat)){
       TestImage$Im = as.character(ConInf$Welldat$MyIm[which(ConInf$Welldat$PlateID == input$SampPlate1 & ConInf$Welldat$TimePoint ==  input$SampTime1 &
                                                               ConInf$Welldat$Well == input$SampWell1 & ConInf$Welldat$Site == input$SampSite1 & ConInf$Welldat$Channel == 'w1')])
-      try({TestImage$size = imager::iminfo(TestImage$Im)[c('width','height')] })
+      try({TestImage$size = exifr::read_exif(TestImage$Im,tags=c('ImageWidth','ImageHeight'))[,2:3]})
       if(length(TestImage$Im)==0){
         TestImage$status = 0
       }else{
