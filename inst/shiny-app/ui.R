@@ -172,7 +172,7 @@ ui = fluidPage(
                                     numericInput("w1OFF",label='Offset for Nucleus',value = 0.1, step=0.01)),
                                   conditionalPanel(
                                     condition = "input.Denoising == 'YES'",
-                                    numericInput('RO.size',label='Denoising filter size', value = 25, step = 2)
+                                    numericInput('RO.size',label='Denoising filter size', value = 9, step = 2, min = 3)
                                   ),
                                   numericInput('adj.step1',label='Extrema smoothing',value = 2, step=1,min=1,max=8),
                                   radioButtons("AutoAd1", label = "Auto-adjust",inline = T,
