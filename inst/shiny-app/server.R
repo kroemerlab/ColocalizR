@@ -148,7 +148,7 @@ server = function(input, output, session) {
                   Cyto.settings$Pass=TRUE
                   }else{
                     if(input$adj > 0 | input$adj < 2){
-                      Cyto.settings$text="Adjustement coeeficient value must be between 0 and 2"
+                      Cyto.settings$text="Adjustement coefficient value must be between 0 and 2"
                       Cyto.settings$color="FF9900"
                       Cyto.settings$Pass=TRUE
                     }else{
