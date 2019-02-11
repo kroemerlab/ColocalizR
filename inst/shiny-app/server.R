@@ -94,8 +94,8 @@ server = function(input, output, session) {
                 Nuc.settings$color="#FF0000"
                 Nuc.settings$Pass=FALSE
               }else{
-                if(input$w1OFF > 1 | input$w1OFF < 0){
-                  Nuc.settings$text="Offset value must be between 0 and 1"
+                if(input$w1OFF > 1 | input$w1OFF < -1){
+                  Nuc.settings$text="Offset value must be between -1 and 1"
                   Nuc.settings$color="FF9900"
                   Nuc.settings$Pass=TRUE
                 }else{
@@ -142,8 +142,8 @@ server = function(input, output, session) {
                 Cyto.settings$color="#FF0000"
                 Cyto.settings$Pass=FALSE
               }else{
-                if(input$CytoOFF > 1 | input$CytoOFF < 0){
-                  Cyto.settings$text="Offset value must be between 0 and 1"
+                if(input$CytoOFF > 1 | input$CytoOFF < -1){
+                  Cyto.settings$text="Offset value must be between -1 and 1"
                   Cyto.settings$color="FF9900"
                   Cyto.settings$Pass=TRUE
                   }else{
@@ -179,8 +179,8 @@ server = function(input, output, session) {
               Cpt1.settings$Pass=TRUE
             }else{
               if(input$auto2 == 'NO'){
-                if(input$w2OFF > 1 | input$w2OFF < 0){
-                  Cpt1.settings$text="Offset value should be between 0 and 1"
+                if(input$w2OFF > 1 | input$w2OFF < -1){
+                  Cpt1.settings$text="Offset value should be between -1 and 1"
                   Cpt1.settings$color="FF9900"
                   Cpt1.settings$Pass=TRUE
                 }else{
@@ -213,8 +213,8 @@ server = function(input, output, session) {
               Cpt2.settingsPass=TRUE
             }else{
               if(input$auto3 == 'NO'){
-                if(input$w3OFF > 1 | input$w3OFF < 0){
-                  Cpt2.settings$text="Offset value should be between 0 and 1"
+                if(input$w3OFF > 1 | input$w3OFF < -1){
+                  Cpt2.settings$text="Offset value should be between -1 and 1"
                   Cpt2.settings$color="FF9900"
                   Cpt2.settingsPass=TRUE
                 }else{
