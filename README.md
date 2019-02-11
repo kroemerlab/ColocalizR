@@ -55,7 +55,7 @@ sudo R CMD javareconf
 
 #### Install dependencies
 ```sh
-sudo apt install libcurl4-openssl-dev libssl-dev unixodbc unixodbc-dev libtiff-dev fftw-dev fftw3 fftw3-dev libv8-3.14-dev libv8-3.14-dev perl libapache2-mod-perl2 libxml-simple-perl libio-compress-perl libdbi-perl libapache-dbi-perl
+sudo apt install libcurl4-openssl-dev libssl-dev unixodbc unixodbc-dev libtiff-dev fftw-dev fftw3 fftw3-dev libv8-3.14-dev libv8-3.14-dev perl
 ```
 
 ## R Packages
