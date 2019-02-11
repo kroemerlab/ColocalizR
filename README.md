@@ -5,7 +5,7 @@ ColocalizR is an R-based image-analysis application developed for the quantifica
 ColocalizR can be used on Windows, Linux and MacOS X, with at least 8GB of RAM and a quad-core (or higher) last-generation CPU. Internet connection is required for installation.
 
 ## Installation
-To use this app, you need to have [R](https://cran.r-project.org/), [RStudio](https://www.rstudio.com/products/rstudio/download/) and [Java](https://www.java.com/fr/) installed.
+To use this app, you need to have [R](https://cran.r-project.org/), [RStudio](https://www.rstudio.com/products/rstudio/download/), [Java](https://www.java.com/fr/download/manual.jsp and [Strawberry Perl] (http://strawberryperl.com) installed.
 
 ### Windows
 Click on the previous links to download and install all the required program files. 
@@ -55,7 +55,7 @@ sudo R CMD javareconf
 
 #### Install dependencies
 ```sh
-sudo apt install libcurl4-openssl-dev libssl-dev unixodbc unixodbc-dev libtiff-dev fftw-dev fftw3 fftw3-dev libv8-3.14-dev
+sudo apt install libcurl4-openssl-dev libssl-dev unixodbc unixodbc-dev libtiff-dev fftw-dev fftw3 fftw3-dev libv8-3.14-dev libv8-3.14-dev perl libapache2-mod-perl2 libxml-simple-perl libio-compress-perl libdbi-perl libapache-dbi-perl
 ```
 
 ## R Packages
