@@ -23,6 +23,11 @@ For previous versions of MacOS, you can refer to [these instructions](https://ww
 ### Linux (Ubuntu/Debian)
 On Linux, you can either install the program files in the same way than in the two previous configurations or use command lines to do it. If you choose to do it in command lines, type in a terminal the commands below to correctly install and configure R, RStudio and Java. 
 
+#### Install dependencies
+```sh
+sudo apt install libcurl4-openssl-dev libssl-dev unixodbc unixodbc-dev libtiff-dev fftw-dev fftw3 fftw3-dev libv8-3.14-dev libv8-3.14-dev perl
+```
+
 #### Install R
 ##### Ubuntu
 ```sh
@@ -50,11 +55,6 @@ sudo apt install -f  # install missing dependencies
 ```sh
 sudo apt install -y default-jdk
 sudo R CMD javareconf
-```
-
-#### Install dependencies
-```sh
-sudo apt install libcurl4-openssl-dev libssl-dev unixodbc unixodbc-dev libtiff-dev fftw-dev fftw3 fftw3-dev libv8-3.14-dev libv8-3.14-dev perl
 ```
 
 ## R Packages
