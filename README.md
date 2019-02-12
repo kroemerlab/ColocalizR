@@ -48,7 +48,6 @@ sudo apt install -f  # install missing dependencies
 ```
 #### Install Java
 ```sh
-sudo apt install -y default-jre
 sudo apt install -y default-jdk
 sudo R CMD javareconf
 ```
