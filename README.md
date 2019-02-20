@@ -73,7 +73,7 @@ BiocManager::install(c("EBImage","flowCore"), version = "3.8")
 
 devtools::install_github(c("kroemerlab/MetaxpR", "kroemerlab/MorphR", "kroemerlab/ColocalizR"))
 ```
-:warning: The latest version of EBImage is mandatory :warning: 
+:warning: ColocalizR requires version 4.20.1 (or later) for EBImage :warning: 
 
 ## Application
 Once installation is complete, you can run this line in the console to launch the app. 
