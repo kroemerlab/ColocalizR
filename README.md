@@ -31,14 +31,14 @@ sudo apt install libcurl4-openssl-dev libssl-dev unixodbc unixodbc-dev libtiff-d
 #### Install R
 ##### Ubuntu
 ```sh
-grep -q -F "deb http://cran.rstudio.com/bin/linux/ubuntu *UbuntuVersion*-cran35/" /etc/apt/sources.list || sudo echo "deb http://cran.rstudio.com/bin/linux/ubuntu *UbuntuVersion*-cran35/" >> /etc/apt/sources.list
+grep -q -F "deb http://cran.rstudio.com/bin/linux/ubuntu *UbuntuVersion*-cran*Rversion*/" /etc/apt/sources.list || sudo echo "deb http://cran.rstudio.com/bin/linux/ubuntu *UbuntuVersion*-cran*Rversion*/" >> /etc/apt/sources.list
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
 sudo apt update
 sudo apt install r-base
 ```
 ##### Debian
 ```sh
-grep -q -F "deb http://cran.rstudio.com/bin/linux/debian *DebianVersion*-cran35/" /etc/apt/sources.list || sudo su -c "echo 'deb http://cran.rstudio.com/bin/linux/debian *DebianVersion*-cran35/' >> /etc/apt/sources.list"
+grep -q -F "deb http://cran.rstudio.com/bin/linux/debian *DebianVersion*-cran*Rversion*/" /etc/apt/sources.list || sudo su -c "echo 'deb http://cran.rstudio.com/bin/linux/debian *DebianVersion*-cran*Rversion*/' >> /etc/apt/sources.list"
 sudo apt install dirmngr
 sudo apt-key adv --keyserver keys.gnupg.net --recv-key 'E19F5F87128899B192B1A2C2AD5F960A256A04AF'
 sudo apt update
@@ -47,7 +47,7 @@ sudo apt install r-base
 
 #### Install RStudio
 ```sh
-wget https://download1.rstudio.org/rstudio-1.1.456-amd64.deb
+wget https://download1.rstudio.org/rstudio-*RStudioVersion*-amd64.deb
 sudo dpkg -i rstudio-1.1.456-amd64.deb
 sudo apt install -f  # install missing dependencies
 ```
@@ -73,6 +73,8 @@ BiocManager::install(c("EBImage","flowCore"), version = "3.8")
 
 devtools::install_github(c("kroemerlab/MetaxpR", "kroemerlab/MorphR", "kroemerlab/ColocalizR"))
 ```
+:warning: The latest verson of EBImage must be installed :warning: 
+
 ## Application
 Once all is installed, you can run this line in the console to download and launch the app. 
 ```library(ColocalizR);Launcher()``` 
