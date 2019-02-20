@@ -76,7 +76,7 @@ devtools::install_github(c("kroemerlab/MetaxpR", "kroemerlab/MorphR", "kroemerla
 :warning: The latest version of EBImage is mandatory :warning: 
 
 ## Application
-Once all is installed, you can run this line in the console to download and launch the app. 
+Once installation is complete, you can run this line in the console to launch the app. 
 ```library(ColocalizR);Launcher()``` 
 
 For more informations, please refer to the [User Manual](https://github.com/kroemerlab/ColocalizR/blob/master/ColocalizR%20-%20User%20Manual.pdf).
