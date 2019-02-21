@@ -459,7 +459,7 @@ server = function(input, output, session) {
         setProgress(message='Segmenting images...')
         isolate({
           TempI = coloc.Sgl(MyImCl = ConInf$Welldat, Plate = input$SampPlate1, Time = input$SampTime1, Well= input$SampWell1, Site = input$SampSite1, Blue = as.numeric(input$BlueChannel), Green = as.numeric(input$GreenChannel), Red = as.numeric(input$RedChannel), auto2 = (input$auto2 == 'YES'), 
-                            auto3 = (input$auto3 == 'YES'), Cyto = input$Cyto, Nuc.rm = (input$Nucrm == 'YES'), TopSize2 = input$TopSize2, TopSize3 = input$TopSize3,  w1OFF = input$w1OFF,w2OFF = input$w2OFF,w3OFF = input$w3OFF, Nuc.denoising = (input$Denoising=='YES'), RO.size = input$RO.size,  
+                            auto3 = (input$auto3 == 'YES'), Seg.method = input$Seg, Cyto = input$Cyto, Nuc.rm = (input$Nucrm == 'YES'), TopSize2 = input$TopSize2, TopSize3 = input$TopSize3,  w1OFF = input$w1OFF,w2OFF = input$w2OFF,w3OFF = input$w3OFF, Nuc.denoising = (input$Denoising=='YES'), RO.size = input$RO.size,  
                             NucWindow = as.numeric(input$NucWindow), SegCyto.met = input$SegCytoMet, CytoOFF = input$CytoOFF, CytoWindow = as.numeric(input$CytoWindow), FullIm = T, TEST=T, getCell = (input$CellIm == 'YES'), adj.step1 = input$adj.step1, adj.step2 = input$adj.step2, adj.step3 = input$adj.step3, 
                             adj = as.numeric(input$adj), getRange = c((input$AutoAd1=='YES'),(input$AutoAd2=='YES'),(input$AutoAd3=='YES')),Rm1 = input$Rm1, Rm2 = input$Rm2, Rm3= input$Rm3)
         })
@@ -498,7 +498,7 @@ server = function(input, output, session) {
       UniID = unique(MyImCl.FOR$GlobalID)
       #--
       args.coloc = list(MyImCl = MyImCl.FOR, Blue = as.numeric(input$BlueChannel), Green = as.numeric(input$GreenChannel),Red = as.numeric(input$RedChannel), auto2 = (input$auto2 == 'YES'), auto3 = (input$auto3 == 'YES'),
-                        Cyto = input$Cyto, Nuc.rm = (input$Nucrm == 'YES'), TopSize2 = input$TopSize2, TopSize3 = input$TopSize3, Nuc.denoising = (input$Denoising=='YES'), RO.size = input$RO.size,  
+                        Cyto = input$Cyto, Nuc.rm = (input$Nucrm == 'YES'), TopSize2 = input$TopSize2, TopSize3 = input$TopSize3, Nuc.denoising = (input$Denoising=='YES'), RO.size = input$RO.size,Seg.method = input$Seg,
                         NucWindow = as.numeric(input$NucWindow), SegCyto.met = input$SegCytoMet, CytoOFF = input$CytoOFF, CytoWindow = as.numeric(input$CytoWindow), TEST=F,getCell = (input$CellIm == 'YES'),
                         w1OFF = input$w1OFF,w2OFF = input$w2OFF,w3OFF = input$w3OFF, adj = as.numeric(input$adj), adj.step1 = input$adj.step1, adj.step2 = input$adj.step2, adj.step3 = input$adj.step3, add.features = (input$ExpFea == 'YES'), 
                         writeSeg = (input$ExpSeg == 'YES'), writePDF = (input$ExpPDF == 'YES'), path = as.character(input$savefolder.str), getRange = rep(TRUE,3))
