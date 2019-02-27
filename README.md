@@ -64,7 +64,7 @@ install.packages(pkgs=c('rJava','devtools'), repos = "http://cloud.r-project.org
 
 # For R versions < 3.5
 source("http://bioconductor.org/biocLite.R")
-biocLite(pkgs=c('EBImage','flowCore'), ask=F)
+biocLite(pkgs=c('EBImage','flowCore','S4Vectors'), ask=F)
 
 # For R versions >= 3.5
 if (!requireNamespace("BiocManager", quietly = TRUE))
