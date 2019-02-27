@@ -69,7 +69,7 @@ biocLite(pkgs=c('EBImage','flowCore'), ask=F)
 # For R versions >= 3.5
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
-BiocManager::install(c("EBImage","flowCore"), version = "3.8")
+BiocManager::install(c("EBImage","flowCore","S4Vectors"), version = "3.8")
 
 devtools::install_github(c("kroemerlab/MetaxpR", "kroemerlab/MorphR", "kroemerlab/ColocalizR"))
 ```
