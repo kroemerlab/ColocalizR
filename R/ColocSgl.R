@@ -135,7 +135,7 @@ coloc.Sgl = function(MyImCl, Plate,Time,Well,Site ,Blue=1,Green=2, Red=3, auto1=
           NMask = propagate(T1, bwlabel(seed), mask = T1)
           rm(seed)
         }else if(Seg.method == 'Robust'){
-          NMask = watershed(distmap(opening(TH,makeBrush(15,'disc'))))
+          NMask = watershed(distmap(T1))
         }
         rm(TH)
       }
