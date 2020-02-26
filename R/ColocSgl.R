@@ -1,4 +1,4 @@
-#' Main function calculating colocalization parameters
+#' Main function for calculating colocalization parameters
 #'
 #' @keywords internal
 #' @import flowCore
