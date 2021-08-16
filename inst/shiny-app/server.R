@@ -555,9 +555,10 @@ server = function(input, output, session) {
             PSummary$PCC=(PSummary$PCC+1)*50; PSummary$ICQ=(PSummary$ICQ+0.5)*100;
             PSummary$MOC=PSummary$MOC*100 ;PSummary$SOC=PSummary$SOC*100;
             PSummary$SOCR=PSummary$SOCR*100;PSummary$SOCG=PSummary$SOCG*100;
+            coi = setdiff(colnames(PSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID"))
+            PSummary[,coi]=apply(PSummary[,coi],2,function(x){x[is.na(x)|is.nan(x)|is.infinite(x)]=0;return(x)})
             #
-            MX2FCS(dat = PSummary[-which(PSummary$ObjNum==0),],
-                   coi = setdiff(colnames(PSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID")),
+            MX2FCS(dat = PSummary[-which(PSummary$ObjNum==0),],coi = coi,
                    export = paste(args.coloc$path,x,Summary$Time[1],sep = '/'),wlab='WellID')
           })
         }else{
@@ -566,9 +567,10 @@ server = function(input, output, session) {
             TSummary$PCC=(TSummary$PCC+1)*50; TSummary$ICQ=(TSummary$ICQ+0.5)*100;
             TSummary$MOC=TSummary$MOC*100 ;TSummary$SOC=TSummary$SOC*100;
             TSummary$SOCR=TSummary$SOCR*100;TSummary$SOCG=TSummary$SOCG*100;
+            coi = setdiff(colnames(PSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID"))
+            TSummary[,coi]=apply(TSummary[,coi],2,function(x){x[is.na(x)|is.nan(x)|is.infinite(x)]=0;return(x)})
             #
-            MX2FCS(dat = TSummary[-which(TSummary$ObjNum==0),],
-                   coi = setdiff(colnames(TSummary),c("ObjNum","PlateID","Time","WellID","SiteID","GlobalID")),
+            MX2FCS(dat = TSummary[-which(TSummary$ObjNum==0),],coi = coi,
                    export = paste(args.coloc$path,Summary$PlateID[1],x,sep = '/'),wlab='WellID')
           })
         }

@@ -2,20 +2,53 @@
 % Please edit documentation in R/ColocSgl.R
 \name{coloc.Sgl}
 \alias{coloc.Sgl}
-\title{Main function calculating colocalization parameters}
+\title{Main function for calculating colocalization parameters}
 \usage{
-coloc.Sgl(MyImCl, Plate, Time, Well, Site, Blue = 1, Green = 2,
-  Red = 3, auto1 = T, auto2 = T, auto3 = T, Cyto = "Compt 2",
-  Nuc.rm = T, Seg.method = "Fast", TopSize1 = 29, TopSize2 = 29,
-  TopSize3 = 29, w1OFF = 0.1, w2OFF = 0.15, w3OFF = 0.1,
-  Nuc.denoising = T, NucWindow = 50, RO.size = 25,
-  SegCyto.met = "Automated", CytoWindow = 50, CytoOFF = 0.1,
-  Rm1 = c(0, 0.3), Rm2 = c(0, 0.1), Rm3 = c(0, 0.1), adj = 1,
-  adj.step1 = 2, adj.step2 = 2, adj.step3 = 2, getCell = F,
-  add.features = F, writeSeg = T, writePDF = F, TEST = F,
-  FullIm = F, getRange = c(F, F, F), path = "...")
+coloc.Sgl(
+  MyImCl,
+  Plate,
+  Time,
+  Well,
+  Site,
+  Blue = 1,
+  Green = 2,
+  Red = 3,
+  auto1 = T,
+  auto2 = T,
+  auto3 = T,
+  Cyto = "Compt 2",
+  Nuc.rm = T,
+  Seg.method = "Fast",
+  TopSize1 = 29,
+  TopSize2 = 29,
+  TopSize3 = 29,
+  w1OFF = 0.1,
+  w2OFF = 0.15,
+  w3OFF = 0.1,
+  Nuc.denoising = T,
+  NucWindow = 50,
+  RO.size = 25,
+  SegCyto.met = "Automated",
+  CytoWindow = 50,
+  CytoOFF = 0.1,
+  Rm1 = c(0, 0.3),
+  Rm2 = c(0, 0.1),
+  Rm3 = c(0, 0.1),
+  adj = 1,
+  adj.step1 = 2,
+  adj.step2 = 2,
+  adj.step3 = 2,
+  getCell = F,
+  add.features = F,
+  writeSeg = T,
+  writePDF = F,
+  TEST = F,
+  FullIm = F,
+  getRange = c(F, F, F),
+  path = "..."
+)
 }
 \description{
-Main function calculating colocalization parameters
+Main function for calculating colocalization parameters
 }
 \keyword{internal}

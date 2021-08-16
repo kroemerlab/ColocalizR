@@ -25,7 +25,7 @@ cssdis = "
 
 ui = fluidPage(
   shinyjs::useShinyjs(),
-  shinyjs::extendShinyjs(text = jsdis),
+  shinyjs::extendShinyjs(text = jsdis, functions=c('disableTab','enableTab')),
   shinyjs::inlineCSS(cssdis),
   includeCSS("www/bootstrap.css"),
   titlePanel("ColocalizR"),
@@ -106,15 +106,15 @@ ui = fluidPage(
                                   fluidRow(
                                     column(width=4,
                                            radioButtons("BlueChannel", label = "Nucleus :",inline = F,
-                                                        choices = c(1,2,3),selected = 1)
+                                                        choiceValues=1:3,choiceNames=paste0('w',1:3),selected = 1)
                                     ),
                                     column(width=4,
                                            radioButtons("GreenChannel", label = "Compt 1 :",inline = F,
-                                                        choices = c(1,2,3),selected = 2)
+                                                        choiceValues=1:3,choiceNames=paste0('w',1:3),selected = 2)
                                     ),
                                     column(width=4,
                                            radioButtons("RedChannel", label = "Compt 2 :",inline = F,
-                                                        choices = c(1,2,3),selected = 3)
+                                                        choiceValues=1:3,choiceNames=paste0('w',1:3),selected = 3)
                                     )))
                                 ,id='ColSet'),
                          
